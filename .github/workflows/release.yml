@@ -1,0 +1,130 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  check-version:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag must match package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+  build:
+    needs: check-version
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: bun-darwin-arm64
+            asset: darwin-arm64
+          - target: bun-darwin-x64
+            asset: darwin-x64
+          - target: bun-linux-x64
+            asset: linux-x64
+          - target: bun-linux-arm64
+            asset: linux-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - run: |
+          bun build --compile --minify \
+            --target=${{ matrix.target }} \
+            --outfile dist/tomtom \
+            src/cli/main.ts
+
+      - name: Package and checksum
+        run: |
+          cd dist
+          tar czf tomtom-${{ matrix.asset }}.tar.gz tomtom
+          sha256sum tomtom-${{ matrix.asset }}.tar.gz > tomtom-${{ matrix.asset }}.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.asset }}
+          path: |
+            dist/tomtom-${{ matrix.asset }}.tar.gz
+            dist/tomtom-${{ matrix.asset }}.tar.gz.sha256
+
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: dist
+          merge-multiple: true
+
+      - run: gh release create "${{ github.ref_name }}" dist/*.tar.gz dist/*.sha256 --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  publish-homebrew:
+    needs: github-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate the Homebrew formula
+        run: |
+          bun run scripts/generate-formula.ts \
+            --version="${GITHUB_REF_NAME#v}" \
+            --repo="${{ github.repository }}" \
+            --darwin-arm64="$(cut -d' ' -f1 dist/tomtom-darwin-arm64.tar.gz.sha256)" \
+            --darwin-x64="$(cut -d' ' -f1 dist/tomtom-darwin-x64.tar.gz.sha256)" \
+            --linux-x64="$(cut -d' ' -f1 dist/tomtom-linux-x64.tar.gz.sha256)" \
+            --linux-arm64="$(cut -d' ' -f1 dist/tomtom-linux-arm64.tar.gz.sha256)" \
+            --out=Formula/tomtom.rb
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/homebrew-tomtom
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tomtom
+
+      - name: Push the formula to the tap
+        run: |
+          cp Formula/tomtom.rb homebrew-tomtom/Formula/tomtom.rb
+          cd homebrew-tomtom
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/tomtom.rb
+          if git diff --cached --quiet; then
+            echo "Formula unchanged, nothing to commit."
+            exit 0
+          fi
+          git commit -m "tomtom ${GITHUB_REF_NAME}"
+          git push
