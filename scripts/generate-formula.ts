@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /** Renders Formula/tomtom.rb for the Homebrew tap from per-platform release checksums. */
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 
 interface Args {
   readonly version: string;
@@ -77,5 +78,6 @@ end
 };
 
 const args = parseArgs(process.argv.slice(2));
+mkdirSync(dirname(args.out), { recursive: true });
 writeFileSync(args.out, render(args));
 console.log(`Wrote ${args.out}`);
