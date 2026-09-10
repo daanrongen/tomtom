@@ -15,8 +15,16 @@ const lonOption = Options.float("lon").pipe(Options.optional);
 const radiusOption = Options.integer("radius").pipe(Options.optional);
 const topLeftOption = Options.text("top-left").pipe(Options.optional);
 const btmRightOption = Options.text("btm-right").pipe(Options.optional);
-const categorySetOption = Options.text("category").pipe(Options.optional);
-const brandSetOption = Options.text("brand").pipe(Options.optional);
+const categorySetOption = Options.text("category").pipe(
+  Options.optional,
+  Options.withDescription(
+    "Comma-separated numeric TomTom category IDs (e.g. 7315 for restaurants), not free text — see TomTom's Category Search reference",
+  ),
+);
+const brandSetOption = Options.text("brand").pipe(
+  Options.optional,
+  Options.withDescription("Comma-separated brand names, e.g. Starbucks"),
+);
 const viewOption = Options.text("view").pipe(Options.optional);
 const openingHoursOption = Options.text("opening-hours").pipe(Options.optional);
 const typeaheadOption = Options.boolean("typeahead").pipe(Options.withDefault(false));

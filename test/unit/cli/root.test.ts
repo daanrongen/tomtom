@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { Command } from "@effect/cli";
 import { BunContext } from "@effect/platform-bun";
 import { Effect, Layer } from "effect";
@@ -31,6 +31,18 @@ const errorTag = (exit: Awaited<ReturnType<typeof run>>): string | undefined =>
     : undefined;
 
 describe("root CLI", () => {
+  let originalApiKey: string | undefined;
+
+  beforeEach(() => {
+    originalApiKey = process.env.TOMTOM_API_KEY;
+    delete process.env.TOMTOM_API_KEY;
+  });
+
+  afterEach(() => {
+    if (originalApiKey === undefined) delete process.env.TOMTOM_API_KEY;
+    else process.env.TOMTOM_API_KEY = originalApiKey;
+  });
+
   test("rejects an invalid bounding box", async () => {
     const exit = await run(["traffic", "incidents", "--bbox", "not-a-bbox", "--api-key", "k"]);
     expect(errorTag(exit)).toBe("ValidationError");
