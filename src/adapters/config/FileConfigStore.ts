@@ -13,20 +13,10 @@ const toConfigError = (error: unknown): ConfigError =>
 const resolveConfigPath = (path: Path.Path): string => {
   const home = homedir();
   if (platform() === "darwin") {
-    return path.join(
-      home,
-      "Library",
-      "Application Support",
-      "tomtom",
-      "config.toml",
-    );
+    return path.join(home, "Library", "Application Support", "tomtom", "config.toml");
   }
   const xdgConfigHome = process.env.XDG_CONFIG_HOME;
-  return path.join(
-    xdgConfigHome ?? path.join(home, ".config"),
-    "tomtom",
-    "config.toml",
-  );
+  return path.join(xdgConfigHome ?? path.join(home, ".config"), "tomtom", "config.toml");
 };
 
 /**
@@ -44,17 +34,12 @@ export const layer = (
       const file = overridePath ?? resolveConfigPath(path);
 
       const load = Effect.gen(function* () {
-        const exists = yield* fs
-          .exists(file)
-          .pipe(Effect.mapError(toConfigError));
+        const exists = yield* fs.exists(file).pipe(Effect.mapError(toConfigError));
         if (!exists) return {};
-        const content = yield* fs
-          .readFileString(file)
-          .pipe(Effect.mapError(toConfigError));
+        const content = yield* fs.readFileString(file).pipe(Effect.mapError(toConfigError));
         return yield* Effect.try({
           try: () => TOML.parse(content) as StoredConfig,
-          catch: () =>
-            new ConfigError({ message: `${file} is not valid TOML` }),
+          catch: () => new ConfigError({ message: `${file} is not valid TOML` }),
         });
       });
 
@@ -63,9 +48,7 @@ export const layer = (
           yield* fs
             .makeDirectory(path.dirname(file), { recursive: true })
             .pipe(Effect.mapError(toConfigError));
-          yield* fs
-            .writeFileString(file, TOML.stringify(config))
-            .pipe(Effect.mapError(toConfigError));
+          yield* fs.writeFileString(file, TOML.stringify(config)).pipe(Effect.mapError(toConfigError));
           yield* fs.chmod(file, 0o600).pipe(Effect.mapError(toConfigError));
         });
 

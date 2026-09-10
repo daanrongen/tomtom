@@ -30,22 +30,17 @@ const DEFAULT_RETRIES = 2;
 const parseSeconds = (value: string | undefined): number | undefined => {
   if (!value) return undefined;
   const trimmed = value.trim();
-  const seconds = Number(
-    trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed,
-  );
+  const seconds = Number(trimmed.endsWith("s") ? trimmed.slice(0, -1) : trimmed);
   return Number.isNaN(seconds) ? undefined : seconds;
 };
 
 /** Resolves the effective config from: CLI flags > env vars > config file > defaults. */
-export const resolve = (
-  input: ResolveInput,
-): Effect.Effect<ResolvedConfig, ConfigError, ConfigStore> =>
+export const resolve = (input: ResolveInput): Effect.Effect<ResolvedConfig, ConfigError, ConfigStore> =>
   Effect.gen(function* () {
     const store = yield* ConfigStore;
     const stored = yield* store.load;
 
-    const apiKey =
-      input.apiKeyOption ?? process.env.TOMTOM_API_KEY ?? stored.apiKey;
+    const apiKey = input.apiKeyOption ?? process.env.TOMTOM_API_KEY ?? stored.apiKey;
     if (!apiKey && input.apiKeyRequired !== false) {
       return yield* Effect.fail(
         new ConfigError({
@@ -71,10 +66,7 @@ export const resolve = (
 
     const maxRetries = input.noRetry
       ? 0
-      : (input.retryOption ??
-        Number(
-          process.env.TOMTOM_RETRIES ?? stored.retries ?? DEFAULT_RETRIES,
-        ));
+      : (input.retryOption ?? Number(process.env.TOMTOM_RETRIES ?? stored.retries ?? DEFAULT_RETRIES));
 
     return {
       apiKey: apiKey ?? "",

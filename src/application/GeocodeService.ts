@@ -17,20 +17,17 @@ export interface GeocodeOptions {
 export const geocode = (options: GeocodeOptions) =>
   Effect.gen(function* () {
     const client = yield* TomTomClient;
-    return yield* client.get(
-      `/search/2/geocode/${encodeURIComponent(options.query)}.json`,
-      {
-        limit: options.limit,
-        ofs: options.offset,
-        countrySet: options.countrySet,
-        language: options.language,
-        lat: options.lat,
-        lon: options.lon,
-        radius: options.radius,
-        view: options.view,
-        entityTypeSet: options.entityTypeSet,
-      },
-    );
+    return yield* client.get(`/search/2/geocode/${encodeURIComponent(options.query)}.json`, {
+      limit: options.limit,
+      ofs: options.offset,
+      countrySet: options.countrySet,
+      language: options.language,
+      lat: options.lat,
+      lon: options.lon,
+      radius: options.radius,
+      view: options.view,
+      entityTypeSet: options.entityTypeSet,
+    });
   });
 
 export interface ReverseGeocodeOptions {
@@ -46,16 +43,13 @@ export interface ReverseGeocodeOptions {
 export const reverseGeocode = (options: ReverseGeocodeOptions) =>
   Effect.gen(function* () {
     const client = yield* TomTomClient;
-    return yield* client.get(
-      `/search/2/reverseGeocode/${options.lat},${options.lon}.json`,
-      {
-        language: options.language,
-        radius: options.radius,
-        returnSpeedLimit: options.returnSpeedLimit,
-        heading: options.heading,
-        view: options.view,
-      },
-    );
+    return yield* client.get(`/search/2/reverseGeocode/${options.lat},${options.lon}.json`, {
+      language: options.language,
+      radius: options.radius,
+      returnSpeedLimit: options.returnSpeedLimit,
+      heading: options.heading,
+      view: options.view,
+    });
   });
 
 /** Shape used internally to pull a position out of a geocode response for route waypoint resolution. */

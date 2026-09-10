@@ -16,9 +16,7 @@ export const rawOption = Options.boolean("raw").pipe(
 );
 export const apiKeyOption = Options.text("api-key").pipe(
   Options.optional,
-  Options.withDescription(
-    "Explicit TomTom API key (overrides TOMTOM_API_KEY and the config file)",
-  ),
+  Options.withDescription("Explicit TomTom API key (overrides TOMTOM_API_KEY and the config file)"),
 );
 export const timeoutOption = Options.integer("timeout").pipe(
   Options.optional,
@@ -26,9 +24,7 @@ export const timeoutOption = Options.integer("timeout").pipe(
 );
 export const connectTimeoutOption = Options.integer("connect-timeout").pipe(
   Options.optional,
-  Options.withDescription(
-    "Connect timeout in seconds (best-effort; folded into --timeout)",
-  ),
+  Options.withDescription("Connect timeout in seconds (best-effort; folded into --timeout)"),
 );
 export const retryOption = Options.integer("retry").pipe(
   Options.optional,
@@ -38,21 +34,13 @@ export const noRetryOption = Options.boolean("no-retry").pipe(
   Options.withDefault(false),
   Options.withDescription("Disable retries"),
 );
-export const quietOption = Options.boolean("quiet").pipe(
-  Options.withDefault(false),
-  Options.withAlias("q"),
-);
+export const quietOption = Options.boolean("quiet").pipe(Options.withDefault(false), Options.withAlias("q"));
 export const verboseOption = Options.boolean("verbose").pipe(
   Options.withDefault(false),
   Options.withAlias("v"),
 );
-export const debugOption = Options.boolean("debug").pipe(
-  Options.withDefault(false),
-);
-export const backendOption = Options.choice("backend", [
-  "tomtom-maps",
-  "tomtom-orbis-maps",
-] as const).pipe(
+export const debugOption = Options.boolean("debug").pipe(Options.withDefault(false));
+export const backendOption = Options.choice("backend", ["tomtom-maps", "tomtom-orbis-maps"] as const).pipe(
   Options.optional,
   Options.withDescription("Select the TomTom Maps or Orbis Maps backend"),
 );

@@ -1,8 +1,4 @@
-import {
-  HttpClient,
-  HttpClientRequest,
-  type HttpMethod,
-} from "@effect/platform";
+import { HttpClient, HttpClientRequest, type HttpMethod } from "@effect/platform";
 import { Duration, Effect, Layer, Schedule } from "effect";
 import {
   AuthError,
@@ -13,12 +9,7 @@ import {
   TransportError,
   ValidationError,
 } from "@/domain/shared/errors.js";
-import {
-  type QueryParams,
-  type RawRequest,
-  type RawResponse,
-  TomTomClient,
-} from "@/ports/TomTomClient.js";
+import { type QueryParams, type RawRequest, type RawResponse, TomTomClient } from "@/ports/TomTomClient.js";
 
 export interface HttpTomTomClientConfig {
   readonly apiKey: string;
@@ -28,12 +19,7 @@ export interface HttpTomTomClientConfig {
   readonly debug: boolean;
 }
 
-const buildUrl = (
-  baseUrl: string,
-  path: string,
-  params: QueryParams,
-  apiKey: string,
-): URL => {
+const buildUrl = (baseUrl: string, path: string, params: QueryParams, apiKey: string): URL => {
   const url = new URL(path, baseUrl);
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined) url.searchParams.set(key, String(value));
@@ -50,9 +36,7 @@ export const redact = (url: string | URL): string => {
 };
 
 const isRetryable = (error: TomTomError): boolean =>
-  error._tag === "RateLimitError" ||
-  error._tag === "ServerError" ||
-  error._tag === "TransportError";
+  error._tag === "RateLimitError" || error._tag === "ServerError" || error._tag === "TransportError";
 
 const extractMessage = (body: string): string | undefined => {
   try {
@@ -61,8 +45,7 @@ const extractMessage = (body: string): string | undefined => {
     if (detailedError && typeof detailedError === "object") {
       const message = (detailedError as Record<string, unknown>).message;
       const code = (detailedError as Record<string, unknown>).code;
-      if (typeof message === "string")
-        return typeof code === "string" ? `${code}: ${message}` : message;
+      if (typeof message === "string") return typeof code === "string" ? `${code}: ${message}` : message;
     }
     if (typeof parsed.message === "string") return parsed.message;
     if (typeof parsed.errorText === "string") return parsed.errorText;
@@ -77,11 +60,7 @@ const extractMessage = (body: string): string | undefined => {
   return body.length > 0 && body.length < 300 ? body : undefined;
 };
 
-const toApiError = (
-  status: number,
-  body: string,
-  retryAfter: string | undefined,
-): TomTomError => {
+const toApiError = (status: number, body: string, retryAfter: string | undefined): TomTomError => {
   const message = extractMessage(body) ?? `HTTP ${status}`;
   if (status === 401) return new AuthError({ message });
   if (status === 403) return new ForbiddenError({ message });
@@ -89,8 +68,7 @@ const toApiError = (
     const seconds = retryAfter ? Number(retryAfter) : undefined;
     return new RateLimitError({
       message,
-      retryAfterSeconds:
-        seconds !== undefined && !Number.isNaN(seconds) ? seconds : undefined,
+      retryAfterSeconds: seconds !== undefined && !Number.isNaN(seconds) ? seconds : undefined,
     });
   }
   if (status === 400 || status === 404) return new ValidationError({ message });
@@ -130,19 +108,14 @@ export const layer = (
               Effect.mapError(
                 () =>
                   new TransportError({
-                    message:
-                      "TomTom returned a response that could not be parsed as JSON",
+                    message: "TomTom returned a response that could not be parsed as JSON",
                   }),
               ),
             );
           }
 
-          const body = yield* response.text.pipe(
-            Effect.orElseSucceed(() => ""),
-          );
-          return yield* Effect.fail(
-            toApiError(response.status, body, response.headers["retry-after"]),
-          );
+          const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""));
+          return yield* Effect.fail(toApiError(response.status, body, response.headers["retry-after"]));
         });
 
       const get = (path: string, params: QueryParams = {}) =>
@@ -155,17 +128,13 @@ export const layer = (
               : Effect.fail(error),
           ),
           Effect.retry({
-            schedule: Schedule.exponential(Duration.millis(200)).pipe(
-              Schedule.jittered,
-            ),
+            schedule: Schedule.exponential(Duration.millis(200)).pipe(Schedule.jittered),
             while: isRetryable,
             times: config.maxRetries,
           }),
         );
 
-      const request = (
-        input: RawRequest,
-      ): Effect.Effect<RawResponse, TomTomError> =>
+      const request = (input: RawRequest): Effect.Effect<RawResponse, TomTomError> =>
         Effect.gen(function* () {
           const url = new URL(input.url);
           for (const [key, value] of Object.entries(input.params ?? {})) {
@@ -174,14 +143,12 @@ export const layer = (
           if (input.auth) url.searchParams.set("key", config.apiKey);
 
           if (config.debug) {
-            yield* Effect.logDebug(
-              `${input.method.toUpperCase()} ${redact(url)}`,
-            );
+            yield* Effect.logDebug(`${input.method.toUpperCase()} ${redact(url)}`);
           }
 
-          const httpRequest = HttpClientRequest.make(
-            input.method.toUpperCase() as HttpMethod.HttpMethod,
-          )(url);
+          const httpRequest = HttpClientRequest.make(input.method.toUpperCase() as HttpMethod.HttpMethod)(
+            url,
+          );
           const response = yield* client.execute(httpRequest).pipe(
             Effect.timeout(Duration.millis(config.timeoutMillis)),
             Effect.mapError(
@@ -193,9 +160,7 @@ export const layer = (
                   : new TransportError({ message: cause.message }),
             ),
           );
-          const body = yield* response.text.pipe(
-            Effect.orElseSucceed(() => ""),
-          );
+          const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""));
           return {
             status: response.status,
             headers: response.headers as Record<string, string>,

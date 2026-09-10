@@ -1,10 +1,6 @@
 import { Args, Command, Options } from "@effect/cli";
 import { Console, Effect, Option } from "effect";
-import {
-  fuzzySearch,
-  nearbySearch,
-  poiSearch,
-} from "@/application/SearchService.js";
+import { fuzzySearch, nearbySearch, poiSearch } from "@/application/SearchService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
 import { render, renderSearchResults } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
@@ -23,9 +19,7 @@ const categorySetOption = Options.text("category").pipe(Options.optional);
 const brandSetOption = Options.text("brand").pipe(Options.optional);
 const viewOption = Options.text("view").pipe(Options.optional);
 const openingHoursOption = Options.text("opening-hours").pipe(Options.optional);
-const typeaheadOption = Options.boolean("typeahead").pipe(
-  Options.withDefault(false),
-);
+const typeaheadOption = Options.boolean("typeahead").pipe(Options.withDefault(false));
 const entityTypeSetOption = Options.text("entity-type").pipe(Options.optional);
 const idxSetOption = Options.text("idx-set").pipe(Options.optional);
 
@@ -50,8 +44,7 @@ const fuzzyOptions = {
   idxSet: idxSetOption,
 };
 
-const opt = <A>(value: unknown): A | undefined =>
-  Option.getOrUndefined(value as Option.Option<A>);
+const opt = <A>(value: unknown): A | undefined => Option.getOrUndefined(value as Option.Option<A>);
 
 // biome-ignore lint/suspicious/noExplicitAny: @effect/cli's parsed-config type is unwieldy to hand-annotate here.
 const toFuzzyInput = (parsed: any) => ({
@@ -79,29 +72,17 @@ export const fuzzy = Command.make("fuzzy", fuzzyOptions, (parsed) =>
     parsed as GlobalFlags,
     Effect.gen(function* () {
       const data = yield* fuzzySearch(toFuzzyInput(parsed));
-      yield* render(
-        parsed,
-        data,
-        renderSearchResults as (d: unknown) => string,
-      );
+      yield* render(parsed, data, renderSearchResults as (d: unknown) => string);
     }),
   ),
-).pipe(
-  Command.withDescription(
-    "Fuzzy free-text search (the default for `tomtom search <query>`)",
-  ),
-);
+).pipe(Command.withDescription("Fuzzy free-text search (the default for `tomtom search <query>`)"));
 
 const poi = Command.make("poi", fuzzyOptions, (parsed) =>
   withTomTomClient(
     parsed as GlobalFlags,
     Effect.gen(function* () {
       const data = yield* poiSearch(toFuzzyInput(parsed));
-      yield* render(
-        parsed,
-        data,
-        renderSearchResults as (d: unknown) => string,
-      );
+      yield* render(parsed, data, renderSearchResults as (d: unknown) => string);
     }),
   ),
 ).pipe(Command.withDescription("Search for points of interest"));
@@ -135,11 +116,7 @@ const nearby = Command.make(
           categorySet: Option.getOrUndefined(parsed.category),
           brandSet: Option.getOrUndefined(parsed.brand),
         });
-        yield* render(
-          parsed,
-          data,
-          renderSearchResults as (d: unknown) => string,
-        );
+        yield* render(parsed, data, renderSearchResults as (d: unknown) => string);
       }),
     ),
 ).pipe(Command.withDescription("Search near a lat/lon point"));
@@ -150,11 +127,7 @@ const category = notImplemented("category", "search category", globalOptions, {
 const brand = notImplemented("brand", "search brand", globalOptions, {
   brand: Args.text({ name: "brand" }),
 });
-const alongRoute = notImplemented(
-  "along-route",
-  "search along-route",
-  globalOptions,
-);
+const alongRoute = notImplemented("along-route", "search along-route", globalOptions);
 const geometry = notImplemented("geometry", "search geometry", globalOptions);
 const ev = notImplemented("ev", "search ev", globalOptions);
 
@@ -175,17 +148,6 @@ export const search = Command.make("search", {}, () =>
     "Usage: tomtom search <query> | tomtom search <fuzzy|poi|nearby|category|brand|along-route|geometry|ev>",
   ),
 ).pipe(
-  Command.withDescription(
-    "Search TomTom's Search API (fuzzy search by default)",
-  ),
-  Command.withSubcommands([
-    fuzzy,
-    poi,
-    nearby,
-    category,
-    brand,
-    alongRoute,
-    geometry,
-    ev,
-  ]),
+  Command.withDescription("Search TomTom's Search API (fuzzy search by default)"),
+  Command.withSubcommands([fuzzy, poi, nearby, category, brand, alongRoute, geometry, ev]),
 );

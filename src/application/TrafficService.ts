@@ -29,10 +29,7 @@ export interface IncidentDetailsOptions {
   readonly fields?: string;
 }
 
-export const incidentDetails = (
-  id: string,
-  options: IncidentDetailsOptions = {},
-) =>
+export const incidentDetails = (id: string, options: IncidentDetailsOptions = {}) =>
   Effect.gen(function* () {
     const client = yield* TomTomClient;
     return yield* client.get("/traffic/services/5/incidentDetails", {

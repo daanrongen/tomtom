@@ -5,10 +5,7 @@ import { Effect, Layer } from "effect";
 import { root } from "@/cli/commands/root.js";
 import { rewriteSearchAlias } from "@/cli/searchAlias.js";
 import { ConfigStore } from "@/ports/ConfigStore.js";
-import {
-  fakeHttpClientLayer,
-  jsonResponse,
-} from "../support/fakeHttpClient.js";
+import { fakeHttpClientLayer, jsonResponse } from "../support/fakeHttpClient.js";
 
 const emptyConfigStoreLayer = Layer.succeed(ConfigStore, {
   path: Effect.succeed("/fake/config.toml"),
@@ -23,9 +20,7 @@ const run = (args: ReadonlyArray<string>) =>
     ...rewriteSearchAlias(args),
   ]).pipe(
     Effect.provide(emptyConfigStoreLayer),
-    Effect.provide(
-      fakeHttpClientLayer(() => jsonResponse(200, { results: [] })),
-    ),
+    Effect.provide(fakeHttpClientLayer(() => jsonResponse(200, { results: [] }))),
     Effect.provide(BunContext.layer),
     Effect.runPromiseExit,
   );
@@ -37,14 +32,7 @@ const errorTag = (exit: Awaited<ReturnType<typeof run>>): string | undefined =>
 
 describe("root CLI", () => {
   test("rejects an invalid bounding box", async () => {
-    const exit = await run([
-      "traffic",
-      "incidents",
-      "--bbox",
-      "not-a-bbox",
-      "--api-key",
-      "k",
-    ]);
+    const exit = await run(["traffic", "incidents", "--bbox", "not-a-bbox", "--api-key", "k"]);
     expect(errorTag(exit)).toBe("ValidationError");
   });
 
@@ -72,13 +60,7 @@ describe("root CLI", () => {
   });
 
   test("stub commands fail with NotImplementedError", async () => {
-    const exit = await run([
-      "search",
-      "category",
-      "restaurant",
-      "--api-key",
-      "k",
-    ]);
+    const exit = await run(["search", "category", "restaurant", "--api-key", "k"]);
     expect(errorTag(exit)).toBe("NotImplementedError");
   });
 

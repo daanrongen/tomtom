@@ -2,9 +2,7 @@ import { Effect, Layer } from "effect";
 import { type QueryParams, TomTomClient } from "@/ports/TomTomClient.js";
 
 /** A fake TomTomClient port — application-service tests never hit the network. */
-export const fakeTomTomClientLayer = (
-  handler: (path: string, params: QueryParams) => unknown,
-) =>
+export const fakeTomTomClientLayer = (handler: (path: string, params: QueryParams) => unknown) =>
   Layer.succeed(TomTomClient, {
     get: (path, params = {}) => Effect.succeed(handler(path, params)),
     request: () => Effect.die("request() not stubbed in this test"),

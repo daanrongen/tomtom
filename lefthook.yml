@@ -3,11 +3,11 @@ pre-commit:
   jobs:
     - name: biome format
       glob: "*.{ts,tsx,js,json}"
-      run: bunx biome format --write {staged_files}
+      run: bunx biome format --config-path=./biome.json --write {staged_files}
       stage_fixed: true
     - name: biome check
       glob: "*.{ts,tsx,js,json}"
-      run: bunx biome check {staged_files}
+      run: bunx biome check --config-path=./biome.json {staged_files}
 
 pre-push:
   jobs:

@@ -12,12 +12,8 @@ export const AVOID_MAP: Record<string, string> = {
   "unpaved-roads": "unpavedRoads",
 };
 
-const mapAvoid = (
-  avoid: ReadonlyArray<string> | undefined,
-): string | undefined =>
-  avoid && avoid.length > 0
-    ? avoid.map((a) => AVOID_MAP[a] ?? a).join(",")
-    : undefined;
+const mapAvoid = (avoid: ReadonlyArray<string> | undefined): string | undefined =>
+  avoid && avoid.length > 0 ? avoid.map((a) => AVOID_MAP[a] ?? a).join(",") : undefined;
 
 /** Resolves a waypoint given either as "lat,lon" or a free-text place name (via geocoding). */
 export const resolveWaypoint = (input: string) =>
@@ -68,10 +64,7 @@ export const calculateRoute = (options: RouteCalculateOptions) =>
       );
     }
 
-    const waypoints = yield* Effect.forEach(
-      [options.from, ...options.via, options.to],
-      resolveWaypoint,
-    );
+    const waypoints = yield* Effect.forEach([options.from, ...options.via, options.to], resolveWaypoint);
     const locations = waypoints.map(Coordinate.toParam).join(":");
 
     const client = yield* TomTomClient;
@@ -116,26 +109,22 @@ export const reachableRange = (options: ReachableRangeOptions) =>
     if (budgets.length !== 1) {
       return yield* Effect.fail(
         new ValidationError({
-          message:
-            "specify exactly one of --time, --distance, --fuel, --energy",
+          message: "specify exactly one of --time, --distance, --fuel, --energy",
         }),
       );
     }
 
     const origin = yield* resolveWaypoint(options.from);
     const client = yield* TomTomClient;
-    return yield* client.get(
-      `/routing/1/calculateReachableRange/${Coordinate.toParam(origin)}/json`,
-      {
-        timeBudgetInSec: options.timeBudgetInSec,
-        distanceBudgetInMeters: options.distanceBudgetInMeters,
-        fuelBudgetInLiters: options.fuelBudgetInLiters,
-        energyBudgetInkWh: options.energyBudgetInkWh,
-        travelMode: options.travelMode,
-        traffic: options.traffic,
-        departAt: options.departAt,
-        routeType: options.routeType,
-        avoid: mapAvoid(options.avoid),
-      },
-    );
+    return yield* client.get(`/routing/1/calculateReachableRange/${Coordinate.toParam(origin)}/json`, {
+      timeBudgetInSec: options.timeBudgetInSec,
+      distanceBudgetInMeters: options.distanceBudgetInMeters,
+      fuelBudgetInLiters: options.fuelBudgetInLiters,
+      energyBudgetInkWh: options.energyBudgetInkWh,
+      travelMode: options.travelMode,
+      traffic: options.traffic,
+      departAt: options.departAt,
+      routeType: options.routeType,
+      avoid: mapAvoid(options.avoid),
+    });
   });

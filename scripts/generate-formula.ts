@@ -16,8 +16,7 @@ const parseArgs = (argv: ReadonlyArray<string>): Args => {
   const flags = new Map<string, string>();
   for (const arg of argv) {
     const match = arg.match(/^--([a-z0-9-]+)=(.*)$/);
-    if (match?.[1] !== undefined && match[2] !== undefined)
-      flags.set(match[1], match[2]);
+    if (match?.[1] !== undefined && match[2] !== undefined) flags.set(match[1], match[2]);
   }
   const require = (name: string): string => {
     const value = flags.get(name);

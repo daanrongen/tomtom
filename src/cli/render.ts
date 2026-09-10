@@ -11,11 +11,7 @@ export interface OutputFlags {
  * commands (this CLI never mutates TomTom fields); true header/status inspection lives
  * in `tomtom api request`, which returns the actual upstream status/headers/text.
  */
-export const render = <A>(
-  flags: OutputFlags,
-  data: A,
-  human: (data: A) => string,
-) => {
+export const render = <A>(flags: OutputFlags, data: A, human: (data: A) => string) => {
   if (flags.pretty) return Console.log(JSON.stringify(data, null, 2));
   if (flags.json || flags.raw) return Console.log(JSON.stringify(data));
   return Console.log(human(data));
@@ -55,10 +51,7 @@ export const renderSearchResults = (data: SearchResponseShape): string => {
       const name = r.poi?.name ?? r.address?.freeformAddress ?? "(unnamed)";
       const position = r.position ? `${r.position.lat}, ${r.position.lon}` : "";
       const address = r.address?.freeformAddress ?? "";
-      const distance =
-        r.dist !== undefined
-          ? `Distance: ${(r.dist / 1000).toFixed(1)} km`
-          : "";
+      const distance = r.dist !== undefined ? `Distance: ${(r.dist / 1000).toFixed(1)} km` : "";
       return [name, position, address, distance].filter(Boolean).join("\n");
     })
     .join("\n\n");
@@ -95,17 +88,11 @@ interface ReverseGeocodeResponseShape {
   readonly addresses?: ReadonlyArray<ReverseGeocodeAddressShape>;
 }
 
-export const renderReverseGeocodeResults = (
-  data: ReverseGeocodeResponseShape,
-): string => {
+export const renderReverseGeocodeResults = (data: ReverseGeocodeResponseShape): string => {
   const addresses = data.addresses ?? [];
   if (addresses.length === 0) return "(no results)";
   return addresses
-    .map((a) =>
-      [a.address?.freeformAddress ?? "", a.position ?? ""]
-        .filter(Boolean)
-        .join("\n"),
-    )
+    .map((a) => [a.address?.freeformAddress ?? "", a.position ?? ""].filter(Boolean).join("\n"))
     .join("\n\n");
 };
 
@@ -135,16 +122,11 @@ export const renderRoute = (data: RouteResponseShape): string => {
       const summary = route.summary;
       if (!summary) return `Route ${i + 1}: (no summary)`;
       const distanceKm =
-        summary.lengthInMeters !== undefined
-          ? (summary.lengthInMeters / 1000).toFixed(1)
-          : "?";
+        summary.lengthInMeters !== undefined ? (summary.lengthInMeters / 1000).toFixed(1) : "?";
       const duration =
-        summary.travelTimeInSeconds !== undefined
-          ? formatDuration(summary.travelTimeInSeconds)
-          : "?";
+        summary.travelTimeInSeconds !== undefined ? formatDuration(summary.travelTimeInSeconds) : "?";
       const delay =
-        summary.trafficDelayInSeconds !== undefined &&
-        summary.trafficDelayInSeconds > 0
+        summary.trafficDelayInSeconds !== undefined && summary.trafficDelayInSeconds > 0
           ? ` (+${formatDuration(summary.trafficDelayInSeconds)} traffic delay)`
           : "";
       return `Route ${i + 1}: ${distanceKm} km, ${duration}${delay}`;
@@ -159,9 +141,7 @@ interface ReachableRangeResponseShape {
   };
 }
 
-export const renderReachableRange = (
-  data: ReachableRangeResponseShape,
-): string => {
+export const renderReachableRange = (data: ReachableRangeResponseShape): string => {
   const range = data.reachableRange;
   if (!range?.center) return "(no reachable range)";
   const points = range.boundary?.length ?? 0;

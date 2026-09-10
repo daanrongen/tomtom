@@ -6,42 +6,28 @@ import { render, renderReachableRange, renderRoute } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
 import { notImplemented } from "./stubs.js";
 
-const fromOption = Options.text("from").pipe(
-  Options.withDescription('Origin: place name or "lat,lon"'),
-);
-const toOption = Options.text("to").pipe(
-  Options.withDescription('Destination: place name or "lat,lon"'),
-);
+const fromOption = Options.text("from").pipe(Options.withDescription('Origin: place name or "lat,lon"'));
+const toOption = Options.text("to").pipe(Options.withDescription('Destination: place name or "lat,lon"'));
 const viaOption = Options.text("via").pipe(
   Options.atLeast(0),
   Options.withDescription("Intermediate waypoint; repeat for multiple stops"),
 );
 const avoidOption = Options.text("avoid").pipe(
   Options.atLeast(0),
-  Options.withDescription(
-    "tolls | highways | ferries | unpaved-roads; repeat to combine",
-  ),
+  Options.withDescription("tolls | highways | ferries | unpaved-roads; repeat to combine"),
 );
 const routeTypeOption = Options.text("route-type").pipe(Options.optional);
 const travelModeOption = Options.text("travel-mode").pipe(Options.optional);
 const trafficOption = Options.boolean("traffic").pipe(Options.optional);
 const departAtOption = Options.text("depart-at").pipe(Options.optional);
 const arriveAtOption = Options.text("arrive-at").pipe(Options.optional);
-const maxAlternativesOption = Options.integer("alternatives").pipe(
+const maxAlternativesOption = Options.integer("alternatives").pipe(Options.optional);
+const instructionsOption = Options.choice("instructions", ["none", "coded", "tagged"] as const).pipe(
   Options.optional,
 );
-const instructionsOption = Options.choice("instructions", [
-  "none",
-  "coded",
-  "tagged",
-] as const).pipe(Options.optional);
 const languageOption = Options.text("language").pipe(Options.optional);
-const computeBestOrderOption = Options.boolean("compute-best-order").pipe(
-  Options.optional,
-);
-const routeRepresentationOption = Options.text("route-representation").pipe(
-  Options.optional,
-);
+const computeBestOrderOption = Options.boolean("compute-best-order").pipe(Options.optional);
+const routeRepresentationOption = Options.text("route-representation").pipe(Options.optional);
 const sectionTypeOption = Options.text("section-type").pipe(Options.optional);
 
 const calculate = Command.make(
@@ -82,9 +68,7 @@ const calculate = Command.make(
           instructionsType: Option.getOrUndefined(parsed.instructions),
           language: Option.getOrUndefined(parsed.language),
           computeBestOrder: Option.getOrUndefined(parsed.computeBestOrder),
-          routeRepresentation: Option.getOrUndefined(
-            parsed.routeRepresentation,
-          ),
+          routeRepresentation: Option.getOrUndefined(parsed.routeRepresentation),
           sectionType: Option.getOrUndefined(parsed.sectionType),
         });
         yield* render(parsed, data, renderRoute as (d: unknown) => string);
@@ -97,22 +81,13 @@ const reachableRangeCommand = Command.make(
   {
     ...globalOptions,
     from: fromOption,
-    time: Options.integer("time").pipe(
-      Options.optional,
-      Options.withDescription("Time budget in seconds"),
-    ),
+    time: Options.integer("time").pipe(Options.optional, Options.withDescription("Time budget in seconds")),
     distance: Options.integer("distance").pipe(
       Options.optional,
       Options.withDescription("Distance budget in meters"),
     ),
-    fuel: Options.float("fuel").pipe(
-      Options.optional,
-      Options.withDescription("Fuel budget in liters"),
-    ),
-    energy: Options.float("energy").pipe(
-      Options.optional,
-      Options.withDescription("Energy budget in kWh"),
-    ),
+    fuel: Options.float("fuel").pipe(Options.optional, Options.withDescription("Fuel budget in liters")),
+    energy: Options.float("energy").pipe(Options.optional, Options.withDescription("Energy budget in kWh")),
     travelMode: travelModeOption,
     traffic: trafficOption,
     departAt: departAtOption,
@@ -135,18 +110,10 @@ const reachableRangeCommand = Command.make(
           routeType: Option.getOrUndefined(parsed.routeType),
           avoid: parsed.avoid,
         });
-        yield* render(
-          parsed,
-          data,
-          renderReachableRange as (d: unknown) => string,
-        );
+        yield* render(parsed, data, renderReachableRange as (d: unknown) => string);
       }),
     ),
-).pipe(
-  Command.withDescription(
-    "Calculate a time/distance/fuel/energy reachable-range polygon",
-  ),
-);
+).pipe(Command.withDescription("Calculate a time/distance/fuel/energy reachable-range polygon"));
 
 const matrix = notImplemented("matrix", "route matrix", globalOptions);
 

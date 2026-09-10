@@ -10,9 +10,7 @@ import { notImplemented } from "./stubs.js";
 const languageOption = Options.text("language").pipe(Options.optional);
 const categoryOption = Options.text("category").pipe(
   Options.optional,
-  Options.withDescription(
-    "Numeric (0-14) or descriptive (e.g. Accident, Jam), comma-separated",
-  ),
+  Options.withDescription("Numeric (0-14) or descriptive (e.g. Accident, Jam), comma-separated"),
 );
 const timeValidityOption = Options.text("time-window").pipe(
   Options.optional,
@@ -23,9 +21,7 @@ const incidentsCommand = Command.make(
   "incidents",
   {
     ...globalOptions,
-    bbox: Options.text("bbox").pipe(
-      Options.withDescription("minLon,minLat,maxLon,maxLat"),
-    ),
+    bbox: Options.text("bbox").pipe(Options.withDescription("minLon,minLat,maxLon,maxLat")),
     language: languageOption,
     category: categoryOption,
     timeWindow: timeValidityOption,

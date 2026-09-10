@@ -9,9 +9,7 @@ export interface BoundingBox {
   readonly maxLat: number;
 }
 
-export const parse = (
-  input: string,
-): Either.Either<BoundingBox, ValidationError> => {
+export const parse = (input: string): Either.Either<BoundingBox, ValidationError> => {
   const parts = input.split(",").map((p) => Number(p.trim()));
   if (parts.length !== 4 || parts.some(Number.isNaN)) {
     return Either.left(
@@ -20,12 +18,7 @@ export const parse = (
       }),
     );
   }
-  const [minLon, minLat, maxLon, maxLat] = parts as [
-    number,
-    number,
-    number,
-    number,
-  ];
+  const [minLon, minLat, maxLon, maxLat] = parts as [number, number, number, number];
   if (minLon >= maxLon || minLat >= maxLat) {
     return Either.left(
       new ValidationError({
@@ -36,5 +29,4 @@ export const parse = (
   return Either.right({ minLon, minLat, maxLon, maxLat });
 };
 
-export const toParam = (b: BoundingBox): string =>
-  `${b.minLon},${b.minLat},${b.maxLon},${b.maxLat}`;
+export const toParam = (b: BoundingBox): string => `${b.minLon},${b.minLat},${b.maxLon},${b.maxLat}`;

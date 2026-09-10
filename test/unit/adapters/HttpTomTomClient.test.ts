@@ -2,10 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
 import * as HttpTomTomClient from "@/adapters/http/HttpTomTomClient.js";
 import { TomTomClient } from "@/ports/TomTomClient.js";
-import {
-  fakeHttpClientLayer,
-  jsonResponse,
-} from "../support/fakeHttpClient.js";
+import { fakeHttpClientLayer, jsonResponse } from "../support/fakeHttpClient.js";
 
 const baseConfig = {
   apiKey: "test-key",
@@ -15,10 +12,7 @@ const baseConfig = {
   debug: false,
 };
 
-const run = <A>(
-  handler: Parameters<typeof fakeHttpClientLayer>[0],
-  config = baseConfig,
-) =>
+const run = <A>(handler: Parameters<typeof fakeHttpClientLayer>[0], config = baseConfig) =>
   Effect.gen(function* () {
     const client = yield* TomTomClient;
     return (yield* client.get("/search/2/geocode/London.json")) as A;

@@ -9,9 +9,7 @@ export interface Coordinate {
 export const isValid = (c: Coordinate): boolean =>
   c.lat >= -90 && c.lat <= 90 && c.lon >= -180 && c.lon <= 180;
 
-export const parse = (
-  input: string,
-): Either.Either<Coordinate, ValidationError> => {
+export const parse = (input: string): Either.Either<Coordinate, ValidationError> => {
   const parts = input.split(",").map((p) => p.trim());
   if (parts.length !== 2) {
     return Either.left(

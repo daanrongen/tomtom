@@ -15,8 +15,4 @@ export const notImplemented = (
 ) =>
   Command.make(name, { ...globalOptions, ...extra }, () =>
     Effect.fail(new NotImplementedError({ feature })),
-  ).pipe(
-    Command.withDescription(
-      "Not yet implemented — planned for a future release of tomtom",
-    ),
-  );
+  ).pipe(Command.withDescription("Not yet implemented — planned for a future release of tomtom"));

@@ -29,9 +29,7 @@ afterEach(() => {
 
 describe("ConfigService.resolve precedence", () => {
   test("fails with ConfigError when no API key is available anywhere", async () => {
-    const exit = await Effect.runPromiseExit(
-      ConfigService.resolve({}).pipe(Effect.provide(storeLayer({}))),
-    );
+    const exit = await Effect.runPromiseExit(ConfigService.resolve({}).pipe(Effect.provide(storeLayer({}))));
     expect(Exit.isFailure(exit)).toBe(true);
   });
 
@@ -48,27 +46,21 @@ describe("ConfigService.resolve precedence", () => {
   test("TOMTOM_API_KEY wins over the config file", async () => {
     process.env.TOMTOM_API_KEY = "env-key";
     const resolved = await Effect.runPromise(
-      ConfigService.resolve({}).pipe(
-        Effect.provide(storeLayer({ apiKey: "file-key" })),
-      ),
+      ConfigService.resolve({}).pipe(Effect.provide(storeLayer({ apiKey: "file-key" }))),
     );
     expect(resolved.apiKey).toBe("env-key");
   });
 
   test("falls back to the config file when nothing else is set", async () => {
     const resolved = await Effect.runPromise(
-      ConfigService.resolve({}).pipe(
-        Effect.provide(storeLayer({ apiKey: "file-key" })),
-      ),
+      ConfigService.resolve({}).pipe(Effect.provide(storeLayer({ apiKey: "file-key" }))),
     );
     expect(resolved.apiKey).toBe("file-key");
   });
 
   test("apiKeyRequired: false allows an empty key through (for `api request --no-auth`)", async () => {
     const resolved = await Effect.runPromise(
-      ConfigService.resolve({ apiKeyRequired: false }).pipe(
-        Effect.provide(storeLayer({})),
-      ),
+      ConfigService.resolve({ apiKeyRequired: false }).pipe(Effect.provide(storeLayer({}))),
     );
     expect(resolved.apiKey).toBe("");
   });
@@ -86,9 +78,7 @@ describe("ConfigService.resolve precedence", () => {
 
   test("defaults backend to tomtom-maps", async () => {
     const resolved = await Effect.runPromise(
-      ConfigService.resolve({ apiKeyOption: "k" }).pipe(
-        Effect.provide(storeLayer({})),
-      ),
+      ConfigService.resolve({ apiKeyOption: "k" }).pipe(Effect.provide(storeLayer({}))),
     );
     expect(resolved.backend).toBe("tomtom-maps");
   });

@@ -38,9 +38,7 @@ export class TransportError extends Data.TaggedError("TransportError")<{
   readonly exitCode = 7;
 }
 
-export class NotImplementedError extends Data.TaggedError(
-  "NotImplementedError",
-)<{
+export class NotImplementedError extends Data.TaggedError("NotImplementedError")<{
   readonly feature: string;
 }> {
   readonly exitCode = 8;
@@ -87,9 +85,7 @@ export const messageOf = (error: TomTomError): string => {
       return `TomTom API error (403): ${error.message}\n\nHint: enable the relevant TomTom API in the Developer Portal.`;
     case "RateLimitError":
       return `TomTom API error (429): ${error.message}${
-        error.retryAfterSeconds
-          ? `\n\nRetry after ${error.retryAfterSeconds}s.`
-          : ""
+        error.retryAfterSeconds ? `\n\nRetry after ${error.retryAfterSeconds}s.` : ""
       }`;
     case "ServerError":
       return `TomTom API error (${error.status}): ${error.message}`;

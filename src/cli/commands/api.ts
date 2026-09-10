@@ -13,15 +13,10 @@ const methodOption = Options.choice("method", [
   "DELETE",
   "HEAD",
   "OPTIONS",
-] as const).pipe(
-  Options.withDefault("GET"),
-  Options.withDescription("HTTP method"),
-);
+] as const).pipe(Options.withDefault("GET"), Options.withDescription("HTTP method"));
 const pathOption = Options.text("path").pipe(
   Options.optional,
-  Options.withDescription(
-    "Path relative to the configured API host, e.g. /search/2/geocode/London.json",
-  ),
+  Options.withDescription("Path relative to the configured API host, e.g. /search/2/geocode/London.json"),
 );
 const urlOption = Options.text("url").pipe(
   Options.optional,
@@ -64,8 +59,7 @@ const requestCommand = Command.make(
               );
 
         const params: Record<string, string> = {};
-        for (const [key, value] of HashMap.entries(parsed.param))
-          params[key] = value;
+        for (const [key, value] of HashMap.entries(parsed.param)) params[key] = value;
 
         const response = yield* request({
           method: parsed.method,
@@ -85,11 +79,7 @@ const requestCommand = Command.make(
             headers: response.headers,
             body,
           };
-          yield* Console.log(
-            parsed.pretty
-              ? JSON.stringify(envelope, null, 2)
-              : JSON.stringify(envelope),
-          );
+          yield* Console.log(parsed.pretty ? JSON.stringify(envelope, null, 2) : JSON.stringify(envelope));
           return;
         }
         yield* Console.log(`HTTP ${response.status}`);
@@ -97,11 +87,7 @@ const requestCommand = Command.make(
       }),
       { apiKeyRequired: !parsed.noAuth },
     ),
-).pipe(
-  Command.withDescription(
-    "Raw escape hatch: call any TomTom endpoint directly",
-  ),
-);
+).pipe(Command.withDescription("Raw escape hatch: call any TomTom endpoint directly"));
 
 const tryParseJson = (body: string): unknown => {
   try {
@@ -122,8 +108,6 @@ const prettyIfJson = (body: string): string => {
 export const api = Command.make("api", {}, () =>
   Console.log("Usage: tomtom api request --method GET --url <url>"),
 ).pipe(
-  Command.withDescription(
-    "Expert escape hatch for endpoints this CLI doesn't wrap yet",
-  ),
+  Command.withDescription("Expert escape hatch for endpoints this CLI doesn't wrap yet"),
   Command.withSubcommands([requestCommand]),
 );

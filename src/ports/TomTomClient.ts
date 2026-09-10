@@ -20,13 +20,8 @@ export class TomTomClient extends Context.Tag("tomtom/TomTomClient")<
   TomTomClient,
   {
     /** GET a TomTom endpoint relative to the configured base URL; injects the API key, retries transient failures, and decodes JSON. */
-    readonly get: (
-      path: string,
-      params?: QueryParams,
-    ) => Effect.Effect<unknown, TomTomError>;
+    readonly get: (path: string, params?: QueryParams) => Effect.Effect<unknown, TomTomError>;
     /** The `api request` escape hatch: arbitrary method/URL, optional auth, raw text body back. */
-    readonly request: (
-      input: RawRequest,
-    ) => Effect.Effect<RawResponse, TomTomError>;
+    readonly request: (input: RawRequest) => Effect.Effect<RawResponse, TomTomError>;
   }
 >() {}

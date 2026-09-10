@@ -25,18 +25,14 @@ const run = <A, E>(effect: Effect.Effect<A, E, TomTomClient>) =>
 
 describe.skipIf(!apiKey)("live TomTom API", () => {
   test("geocode returns at least one result for a well-known address", async () => {
-    const data = (await run(
-      geocode({ query: "10 Downing Street, London", limit: 1 }),
-    )) as {
+    const data = (await run(geocode({ query: "10 Downing Street, London", limit: 1 }))) as {
       results?: ReadonlyArray<unknown>;
     };
     expect(data.results?.length ?? 0).toBeGreaterThan(0);
   });
 
   test("traffic incidents returns a well-formed response for a real bounding box", async () => {
-    const data = (await run(
-      incidents({ bbox: "-0.489,51.28,0.236,51.686" }),
-    )) as {
+    const data = (await run(incidents({ bbox: "-0.489,51.28,0.236,51.686" }))) as {
       incidents?: ReadonlyArray<unknown>;
     };
     expect(Array.isArray(data.incidents)).toBe(true);
