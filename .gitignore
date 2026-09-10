@@ -3,3 +3,4 @@ dist/
 Formula/
 *.tgz
 .DS_Store
+.*.bun-build
