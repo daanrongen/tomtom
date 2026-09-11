@@ -52,6 +52,8 @@ tomtom route calculate --from London --to Oxford --traffic
 tomtom route reachable-range --from London --time 1800 --json > london-30min.json
 tomtom route matrix --input matrix.json
 tomtom traffic incidents --bbox "-0.2,51.45,-0.05,51.55"
+tomtom traffic flow segment --point 51.5074,-0.1278 --style relative --zoom 10
+tomtom traffic flow tile --style relative --zoom 10 --tile-x 511 --tile-y 340 --output flow-tile.png
 tomtom map static --center 51.5074,-0.1278 --zoom 12 --output map.png
 tomtom map tile --layer basic --style main --zoom 10 --tile-x 511 --tile-y 340 --output tile.png
 tomtom api request --method GET --url "https://api.tomtom.com/search/2/geocode/London.json"
@@ -69,9 +71,9 @@ tomtom --completions zsh > "${fpath[1]}/_tomtom"
 { "origins": [{ "lat": 51.5074, "lon": -0.1278 }], "destinations": ["Oxford", "52.2053,0.1218"] }
 ```
 
-`map static`/`map tile`'s output is raw image bytes, not JSON — `--json`/`--pretty` don't apply to them; use `--output <path>` to write to a file, or omit it (or pass `--output -`) to write to stdout.
+`map static`/`map tile`/`traffic flow tile`'s output is raw image bytes, not JSON — `--json`/`--pretty` don't apply to them; use `--output <path>` to write to a file, or omit it (or pass `--output -`) to write to stdout.
 
-Commands not yet implemented (EV routing/search, data-viz, search along-route/geometry/ev, traffic flow) are wired into the tree and show up in `--help`, but exit with a clear "not implemented" error — see [Roadmap](#roadmap).
+Commands not yet implemented (EV routing/search, data-viz, search along-route/geometry/ev) are wired into the tree and show up in `--help`, but exit with a clear "not implemented" error — see [Roadmap](#roadmap).
 
 ## Architecture
 
@@ -111,9 +113,9 @@ Pushing a `vX.Y.Z` tag (matching the version in `package.json`) runs the full pi
 
 ## Roadmap
 
-Phase 1 (this release): config, search (fuzzy/poi/nearby/category/brand), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details, map static/tile, the `api request` escape hatch, shell completion.
+Phase 1 (this release): config, search (fuzzy/poi/nearby/category/brand), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details/flow, map static/tile, the `api request` escape hatch, shell completion.
 
-Phase 2+: search geometry/along-route/ev, traffic flow, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
+Phase 2+: search geometry/along-route/ev, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
 
 ## License
 
