@@ -1,9 +1,11 @@
-import { Console } from "effect";
+import { Console, Option } from "effect";
+import { applySelect } from "./select.js";
 
 export interface OutputFlags {
   readonly json: boolean;
   readonly pretty: boolean;
   readonly raw: boolean;
+  readonly select: Option.Option<string>;
 }
 
 /**
@@ -12,6 +14,11 @@ export interface OutputFlags {
  * in `tomtom api request`, which returns the actual upstream status/headers/text.
  */
 export const render = <A>(flags: OutputFlags, data: A, human: (data: A) => string) => {
+  const select = Option.getOrUndefined(flags.select);
+  if (select !== undefined) {
+    const selected = applySelect(select, data);
+    return Console.log(flags.pretty ? JSON.stringify(selected, null, 2) : JSON.stringify(selected));
+  }
   if (flags.pretty) return Console.log(JSON.stringify(data, null, 2));
   if (flags.json || flags.raw) return Console.log(JSON.stringify(data));
   return Console.log(human(data));
@@ -134,12 +141,31 @@ export const renderRoute = (data: RouteResponseShape): string => {
     .join("\n");
 };
 
+interface ReachableRangePoint {
+  readonly latitude: number;
+  readonly longitude: number;
+}
 interface ReachableRangeResponseShape {
   readonly reachableRange?: {
-    readonly center?: { readonly latitude: number; readonly longitude: number };
-    readonly boundary?: ReadonlyArray<unknown>;
+    readonly center?: ReachableRangePoint;
+    readonly boundary?: ReadonlyArray<ReachableRangePoint>;
   };
 }
+
+/** Converts a reachable-range response into a GeoJSON Polygon Feature (TomTom's boundary is unclosed and lat/lon-ordered). */
+export const reachableRangeToGeoJson = (data: ReachableRangeResponseShape) => {
+  const range = data.reachableRange;
+  const boundary = range?.boundary ?? [];
+  const ring = boundary.map((p) => [p.longitude, p.latitude]);
+  const first = ring[0];
+  const last = ring[ring.length - 1];
+  const closed = first && last && (first[0] !== last[0] || first[1] !== last[1]) ? [...ring, first] : ring;
+  return {
+    type: "Feature",
+    geometry: { type: "Polygon", coordinates: [closed] },
+    properties: range?.center ? { center: { lat: range.center.latitude, lon: range.center.longitude } } : {},
+  };
+};
 
 export const renderReachableRange = (data: ReachableRangeResponseShape): string => {
   const range = data.reachableRange;
