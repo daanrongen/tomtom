@@ -9,6 +9,12 @@ brew tap daanrongen/tomtom
 brew install tomtom
 ```
 
+Installs a standalone binary (no Bun runtime required) — prebuilt for macOS and Linux, arm64 and x64. Verify with:
+
+```sh
+tomtom --version
+```
+
 Or from source:
 
 ```sh
@@ -37,7 +43,7 @@ Precedence: `--api-key` > `TOMTOM_API_KEY` > the config file (`tomtom config pat
 
 ```sh
 tomtom search "Heathrow Airport"
-tomtom search nearby --lat 51.5074 --lon -0.1278 --radius 2000 --category restaurant
+tomtom search nearby --lat 51.5074 --lon -0.1278 --radius 2000 --category 7315   # 7315 = restaurants
 tomtom geocode "10 Downing Street, London"
 tomtom reverse-geocode 51.5034,-0.1276
 tomtom route calculate --from London --to Oxford --traffic
