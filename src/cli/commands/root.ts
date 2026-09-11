@@ -8,6 +8,7 @@ import { map } from "./map.js";
 import { route } from "./route.js";
 import { schema } from "./schema.js";
 import { search } from "./search.js";
+import { skill } from "./skill.js";
 import { traffic } from "./traffic.js";
 
 export const root = Command.make("tomtom", {}, () =>
@@ -25,5 +26,6 @@ export const root = Command.make("tomtom", {}, () =>
     api,
     schema,
     agentInfo,
+    skill,
   ]),
 );
