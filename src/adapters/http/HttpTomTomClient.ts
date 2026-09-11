@@ -1,4 +1,4 @@
-import { HttpClient, HttpClientRequest, type HttpMethod } from "@effect/platform";
+import { HttpBody, HttpClient, HttpClientRequest, type HttpMethod } from "@effect/platform";
 import { Duration, Effect, Layer, Schedule } from "effect";
 import {
   AuthError,
@@ -118,8 +118,8 @@ export const layer = (
           return yield* Effect.fail(toApiError(response.status, body, response.headers["retry-after"]));
         });
 
-      const get = (path: string, params: QueryParams = {}) =>
-        perform(path, params).pipe(
+      const withRetry = <A>(effect: Effect.Effect<A, TomTomError>) =>
+        effect.pipe(
           Effect.catchTag("RateLimitError", (error) =>
             error.retryAfterSeconds
               ? Effect.sleep(Duration.seconds(error.retryAfterSeconds)).pipe(
@@ -133,6 +133,47 @@ export const layer = (
             times: config.maxRetries,
           }),
         );
+
+      const get = (path: string, params: QueryParams = {}) => withRetry(perform(path, params));
+
+      const performPost = (path: string, body: unknown, params: QueryParams) =>
+        Effect.gen(function* () {
+          const url = buildUrl(config.baseUrl, path, params, config.apiKey);
+          if (config.debug) {
+            yield* Effect.logDebug(`POST ${redact(url)}`);
+          }
+
+          const response = yield* client.post(url, { body: HttpBody.unsafeJson(body) }).pipe(
+            Effect.timeout(Duration.millis(config.timeoutMillis)),
+            Effect.mapError(
+              (cause): TomTomError =>
+                cause._tag === "TimeoutException"
+                  ? new TransportError({
+                      message: `request timed out after ${config.timeoutMillis}ms`,
+                    })
+                  : new TransportError({ message: cause.message }),
+            ),
+          );
+
+          if (response.status >= 200 && response.status < 300) {
+            return yield* response.json.pipe(
+              Effect.mapError(
+                () =>
+                  new TransportError({
+                    message: "TomTom returned a response that could not be parsed as JSON",
+                  }),
+              ),
+            );
+          }
+
+          const responseBody = yield* response.text.pipe(Effect.orElseSucceed(() => ""));
+          return yield* Effect.fail(
+            toApiError(response.status, responseBody, response.headers["retry-after"]),
+          );
+        });
+
+      const post = (path: string, body: unknown, params: QueryParams = {}) =>
+        withRetry(performPost(path, body, params));
 
       const request = (input: RawRequest): Effect.Effect<RawResponse, TomTomError> =>
         Effect.gen(function* () {
@@ -168,6 +209,6 @@ export const layer = (
           };
         });
 
-      return { get, request };
+      return { get, post, request };
     }),
   );

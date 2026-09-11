@@ -1,10 +1,11 @@
 import { Command, Options } from "@effect/cli";
+import { FileSystem } from "@effect/platform";
 import { Console, Effect, Option } from "effect";
-import { calculateRoute, reachableRange } from "@/application/RouteService.js";
+import { calculateRoute, reachableRange, routeMatrix } from "@/application/RouteService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
-import { render, renderReachableRange, renderRoute } from "@/cli/render.js";
+import { render, renderReachableRange, renderRoute, renderRouteMatrix } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
-import { notImplemented } from "./stubs.js";
+import { ValidationError } from "@/domain/shared/errors.js";
 
 const fromOption = Options.text("from").pipe(Options.withDescription('Origin: place name or "lat,lon"'));
 const toOption = Options.text("to").pipe(Options.withDescription('Destination: place name or "lat,lon"'));
@@ -115,7 +116,70 @@ const reachableRangeCommand = Command.make(
     ),
 ).pipe(Command.withDescription("Calculate a time/distance/fuel/energy reachable-range polygon"));
 
-const matrix = notImplemented("matrix", "route matrix", globalOptions);
+interface MatrixPoint {
+  readonly lat: number;
+  readonly lon: number;
+}
+type MatrixEntry = string | MatrixPoint;
+interface MatrixInput {
+  readonly origins: ReadonlyArray<MatrixEntry>;
+  readonly destinations: ReadonlyArray<MatrixEntry>;
+}
+
+const toWaypointString = (entry: MatrixEntry): string =>
+  typeof entry === "string" ? entry : `${entry.lat},${entry.lon}`;
+
+const isMatrixEntry = (value: unknown): value is MatrixEntry =>
+  typeof value === "string" ||
+  (typeof value === "object" &&
+    value !== null &&
+    typeof (value as MatrixPoint).lat === "number" &&
+    typeof (value as MatrixPoint).lon === "number");
+
+const parseMatrixInput = (raw: string, path: string) =>
+  Effect.try({
+    try: () => JSON.parse(raw) as unknown,
+    catch: () => new ValidationError({ message: `${path} is not valid JSON` }),
+  }).pipe(
+    Effect.flatMap((parsed) => {
+      const origins = (parsed as Partial<MatrixInput>)?.origins;
+      const destinations = (parsed as Partial<MatrixInput>)?.destinations;
+      const valid =
+        Array.isArray(origins) &&
+        Array.isArray(destinations) &&
+        origins.every(isMatrixEntry) &&
+        destinations.every(isMatrixEntry);
+      if (!valid) {
+        return Effect.fail(
+          new ValidationError({
+            message: `${path} must be {"origins": [...], "destinations": [...]}, entries as "lat,lon", a place name, or {"lat":..,"lon":..}`,
+          }),
+        );
+      }
+      return Effect.succeed({ origins, destinations } as MatrixInput);
+    }),
+  );
+
+const matrix = Command.make(
+  "matrix",
+  { ...globalOptions, input: Options.text("input").pipe(Options.withDescription("Path to a JSON file")) },
+  (parsed) =>
+    withTomTomClient(
+      parsed as GlobalFlags,
+      Effect.gen(function* () {
+        const fs = yield* FileSystem.FileSystem;
+        const raw = yield* fs
+          .readFileString(parsed.input)
+          .pipe(Effect.mapError(() => new ValidationError({ message: `could not read ${parsed.input}` })));
+        const input = yield* parseMatrixInput(raw, parsed.input);
+        const data = yield* routeMatrix({
+          origins: input.origins.map(toWaypointString),
+          destinations: input.destinations.map(toWaypointString),
+        });
+        yield* render(parsed, data, renderRouteMatrix as (d: unknown) => string);
+      }),
+    ),
+).pipe(Command.withDescription("Batch routing across many origins × destinations from a JSON file"));
 
 export const route = Command.make("route", {}, () =>
   Console.log("Usage: tomtom route <calculate|matrix|reachable-range>"),
