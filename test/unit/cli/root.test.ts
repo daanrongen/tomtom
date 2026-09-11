@@ -60,7 +60,7 @@ describe("root CLI", () => {
       exit = await run(["traffic", "incidents", "--bbox", "not-a-bbox", "--api-key", "k", "--json"]);
     } finally {
       console.error = originalError;
-      process.exitCode = originalExitCode;
+      process.exitCode = originalExitCode ?? 0;
     }
     expect(exit._tag).toBe("Success");
     expect(JSON.parse(logged)).toMatchObject({ error: { type: "ValidationError", exitCode: 2 } });
