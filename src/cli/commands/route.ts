@@ -3,7 +3,13 @@ import { FileSystem } from "@effect/platform";
 import { Console, Effect, Option } from "effect";
 import { calculateRoute, reachableRange, routeMatrix } from "@/application/RouteService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
-import { render, renderReachableRange, renderRoute, renderRouteMatrix } from "@/cli/render.js";
+import {
+  reachableRangeToGeoJson,
+  render,
+  renderReachableRange,
+  renderRoute,
+  renderRouteMatrix,
+} from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
 import { ValidationError } from "@/domain/shared/errors.js";
 
@@ -94,6 +100,12 @@ const reachableRangeCommand = Command.make(
     departAt: departAtOption,
     routeType: routeTypeOption,
     avoid: avoidOption,
+    geojson: Options.boolean("geojson").pipe(
+      Options.withDefault(false),
+      Options.withDescription(
+        "Output the boundary as a GeoJSON Polygon Feature instead of TomTom's raw shape",
+      ),
+    ),
   },
   (parsed) =>
     withTomTomClient(
@@ -111,7 +123,12 @@ const reachableRangeCommand = Command.make(
           routeType: Option.getOrUndefined(parsed.routeType),
           avoid: parsed.avoid,
         });
-        yield* render(parsed, data, renderReachableRange as (d: unknown) => string);
+        if (parsed.geojson) {
+          const geo = (reachableRangeToGeoJson as (d: unknown) => unknown)(data);
+          yield* render(parsed, geo, (d) => JSON.stringify(d));
+        } else {
+          yield* render(parsed, data, renderReachableRange as (d: unknown) => string);
+        }
       }),
     ),
 ).pipe(Command.withDescription("Calculate a time/distance/fuel/energy reachable-range polygon"));

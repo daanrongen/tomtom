@@ -48,6 +48,22 @@ describe("root CLI", () => {
     expect(errorTag(exit)).toBe("ValidationError");
   });
 
+  test("with --json, a domain error is reported as structured JSON instead of failing the process", async () => {
+    let logged = "";
+    const original = console.error;
+    console.error = (msg: string) => {
+      logged = msg;
+    };
+    let exit: Awaited<ReturnType<typeof run>>;
+    try {
+      exit = await run(["traffic", "incidents", "--bbox", "not-a-bbox", "--api-key", "k", "--json"]);
+    } finally {
+      console.error = original;
+    }
+    expect(exit._tag).toBe("Success");
+    expect(JSON.parse(logged)).toMatchObject({ error: { type: "ValidationError", exitCode: 2 } });
+  });
+
   test("fails with ConfigError when no API key is configured anywhere", async () => {
     const exit = await run(["geocode", "London"]);
     expect(errorTag(exit)).toBe("ConfigError");

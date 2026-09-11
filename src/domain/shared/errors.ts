@@ -89,3 +89,16 @@ export const messageOf = (error: TomTomError): string => {
       return `Configuration error: ${error.message}`;
   }
 };
+
+/** Structured form of a {@link TomTomError}, for `--json`/`--pretty` invocations. */
+export const toJson = (error: TomTomError) => ({
+  error: {
+    type: error._tag,
+    message: error.message,
+    exitCode: error.exitCode,
+    ...(error._tag === "RateLimitError" && error.retryAfterSeconds !== undefined
+      ? { retryAfterSeconds: error.retryAfterSeconds }
+      : {}),
+    ...(error._tag === "ServerError" ? { status: error.status } : {}),
+  },
+});

@@ -39,6 +39,12 @@ export const verboseOption = Options.boolean("verbose").pipe(
   Options.withAlias("v"),
 );
 export const debugOption = Options.boolean("debug").pipe(Options.withDefault(false));
+export const selectOption = Options.text("select").pipe(
+  Options.optional,
+  Options.withDescription(
+    "jq-lite path selector applied to the response, e.g. 'results[].position' (bypasses human/--json formatting)",
+  ),
+);
 
 /** Spread into every leaf command's config object. */
 export const globalOptions = {
@@ -53,6 +59,7 @@ export const globalOptions = {
   quiet: quietOption,
   verbose: verboseOption,
   debug: debugOption,
+  select: selectOption,
 };
 
 export interface GlobalFlags {
@@ -67,4 +74,5 @@ export interface GlobalFlags {
   readonly quiet: boolean;
   readonly verbose: boolean;
   readonly debug: boolean;
+  readonly select: Option.Option<string>;
 }
