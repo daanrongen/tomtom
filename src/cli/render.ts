@@ -196,6 +196,23 @@ interface IncidentsResponseShape {
   readonly incidents?: ReadonlyArray<IncidentShape>;
 }
 
+interface FlowSegmentResponseShape {
+  readonly flowSegmentData?: {
+    readonly frc?: string;
+    readonly currentSpeed?: number;
+    readonly freeFlowSpeed?: number;
+    readonly confidence?: number;
+    readonly roadClosure?: boolean;
+  };
+}
+
+export const renderFlowSegment = (data: FlowSegmentResponseShape): string => {
+  const segment = data.flowSegmentData;
+  if (!segment) return "(no flow data)";
+  const closure = segment.roadClosure ? " (closed)" : "";
+  return `${segment.frc ?? "?"}: ${segment.currentSpeed ?? "?"}/${segment.freeFlowSpeed ?? "?"} (confidence ${segment.confidence ?? "?"})${closure}`;
+};
+
 export const renderIncidents = (data: IncidentsResponseShape): string => {
   const incidents = data.incidents ?? [];
   if (incidents.length === 0) return "(no incidents)";
