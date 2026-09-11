@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, Exit } from "effect";
-import { staticImage } from "@/application/MapService.js";
+import { staticImage, tile } from "@/application/MapService.js";
 import { capturingTomTomClientLayer, fakeBinaryTomTomClientLayer } from "../support/fakeTomTomClient.js";
 
 describe("MapService.staticImage", () => {
@@ -36,6 +36,48 @@ describe("MapService.staticImage", () => {
     const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
     const layer = fakeBinaryTomTomClientLayer(() => bytes);
     const result = await Effect.runPromise(staticImage({ center: "51.5,-0.1" }).pipe(Effect.provide(layer)));
+    expect(result).toEqual(bytes);
+  });
+});
+
+describe("MapService.tile", () => {
+  test("builds the path from layer/style/zoom/x/y/format", async () => {
+    const { layer, binaryCalls } = capturingTomTomClientLayer();
+    await Effect.runPromise(
+      tile({ layer: "basic", style: "main", zoom: 10, x: 511, y: 340, format: "png" }).pipe(
+        Effect.provide(layer),
+      ),
+    );
+    expect(binaryCalls[0]?.path).toBe("/map/1/tile/basic/main/10/511/340.png");
+  });
+
+  test("passes tileSize/view/language as query params", async () => {
+    const { layer, binaryCalls } = capturingTomTomClientLayer();
+    await Effect.runPromise(
+      tile({
+        layer: "hybrid",
+        style: "night",
+        zoom: 5,
+        x: 1,
+        y: 2,
+        format: "jpg",
+        tileSize: 512,
+        view: "Unified",
+        language: "en-GB",
+      }).pipe(Effect.provide(layer)),
+    );
+    expect(binaryCalls[0]?.path).toBe("/map/1/tile/hybrid/night/5/1/2.jpg");
+    expect(binaryCalls[0]?.params.tileSize).toBe(512);
+    expect(binaryCalls[0]?.params.view).toBe("Unified");
+    expect(binaryCalls[0]?.params.language).toBe("en-GB");
+  });
+
+  test("returns the raw bytes from the client", async () => {
+    const bytes = new Uint8Array([0xff, 0xd8, 0xff]);
+    const layer = fakeBinaryTomTomClientLayer(() => bytes);
+    const result = await Effect.runPromise(
+      tile({ layer: "basic", style: "main", zoom: 1, x: 0, y: 0, format: "png" }).pipe(Effect.provide(layer)),
+    );
     expect(result).toEqual(bytes);
   });
 });

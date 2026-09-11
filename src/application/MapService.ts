@@ -46,3 +46,27 @@ export const staticImage = (options: StaticMapOptions) =>
       language: options.language,
     });
   });
+
+export interface MapTileOptions {
+  readonly layer: string;
+  readonly style: string;
+  readonly zoom: number;
+  readonly x: number;
+  readonly y: number;
+  readonly format: string;
+  readonly tileSize?: number;
+  readonly view?: string;
+  readonly language?: string;
+}
+
+/** Raster map tile retrieval (Map Display API `GET /map/1/tile/{layer}/{style}/{zoom}/{x}/{y}.{format}`) — returns raw image bytes. */
+export const tile = (options: MapTileOptions) =>
+  Effect.gen(function* () {
+    const client = yield* TomTomClient;
+    const path = `/map/1/tile/${options.layer}/${options.style}/${options.zoom}/${options.x}/${options.y}.${options.format}`;
+    return yield* client.getBinary(path, {
+      tileSize: options.tileSize,
+      view: options.view,
+      language: options.language,
+    });
+  });

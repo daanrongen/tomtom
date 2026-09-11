@@ -47,8 +47,35 @@ describe("map CLI", () => {
     expect(errorTag(exit)).toBe("ValidationError");
   });
 
-  test("map tile is still a stub pending #9", async () => {
-    const exit = await run(["map", "tile", "--api-key", "k"]);
-    expect(errorTag(exit)).toBe("NotImplementedError");
+  test("map tile writes tile bytes to stdout by default", async () => {
+    const exit = await run([
+      "map",
+      "tile",
+      "--zoom",
+      "10",
+      "--tile-x",
+      "511",
+      "--tile-y",
+      "340",
+      "--api-key",
+      "k",
+    ]);
+    expect(exit._tag).toBe("Success");
+  });
+
+  test("map tile defaults layer/style/format to basic/main/png", async () => {
+    const exit = await run([
+      "map",
+      "tile",
+      "--zoom",
+      "1",
+      "--tile-x",
+      "0",
+      "--tile-y",
+      "0",
+      "--api-key",
+      "k",
+    ]);
+    expect(exit._tag).toBe("Success");
   });
 });
