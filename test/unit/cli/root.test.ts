@@ -50,7 +50,8 @@ describe("root CLI", () => {
 
   test("with --json, a domain error is reported as structured JSON instead of failing the process", async () => {
     let logged = "";
-    const original = console.error;
+    const originalError = console.error;
+    const originalExitCode = process.exitCode;
     console.error = (msg: string) => {
       logged = msg;
     };
@@ -58,7 +59,8 @@ describe("root CLI", () => {
     try {
       exit = await run(["traffic", "incidents", "--bbox", "not-a-bbox", "--api-key", "k", "--json"]);
     } finally {
-      console.error = original;
+      console.error = originalError;
+      process.exitCode = originalExitCode;
     }
     expect(exit._tag).toBe("Success");
     expect(JSON.parse(logged)).toMatchObject({ error: { type: "ValidationError", exitCode: 2 } });
