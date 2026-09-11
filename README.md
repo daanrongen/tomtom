@@ -107,7 +107,7 @@ Pushing a `vX.Y.Z` tag (matching the version in `package.json`) runs the full pi
 
 ## Roadmap
 
-Phase 1 (this release): config, search (fuzzy/poi/nearby), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details, the `api request` escape hatch, shell completion.
+Phase 1 (this release): config, search (fuzzy/poi/nearby/category/brand), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details, the `api request` escape hatch, shell completion.
 
 Phase 2+: search geometry/along-route/ev, traffic flow, map static/tile, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
 
