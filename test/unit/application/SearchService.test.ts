@@ -30,10 +30,10 @@ describe("SearchService.categorySearch", () => {
 });
 
 describe("SearchService.brandSearch", () => {
-  test("hits poiSearch with a wildcard query and the given brandSet", async () => {
+  test("hits poiSearch with the brand name as the query and as brandSet", async () => {
     const { layer, calls } = capturingTomTomClientLayer();
     await Effect.runPromise(brandSearch({ brandSet: "Starbucks" }).pipe(Effect.provide(layer)));
-    expect(calls[0]?.path).toBe("/search/2/poiSearch/*.json");
+    expect(calls[0]?.path).toBe("/search/2/poiSearch/Starbucks.json");
     expect(calls[0]?.params.brandSet).toBe("Starbucks");
   });
 

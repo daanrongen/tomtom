@@ -85,8 +85,14 @@ export interface BrandSearchOptions {
   readonly categorySet?: string;
 }
 
-/** POI search scoped to a brand, via poiSearch's wildcard-query convention (spec §8.5). */
-export const brandSearch = (options: BrandSearchOptions) => poiSearch({ query: "*", ...options });
+/**
+ * POI search scoped to a brand (spec §8.5). Unlike categorySearch, this uses the brand
+ * name itself as the free-text query — TomTom's poiSearch returns zero results for
+ * `brandSet` alone under the `*` wildcard (verified live); the wildcard convention only
+ * works with `categorySet`.
+ */
+export const brandSearch = (options: BrandSearchOptions) =>
+  poiSearch({ query: options.brandSet, ...options });
 
 export interface NearbySearchOptions {
   readonly lat: number;
