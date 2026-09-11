@@ -155,11 +155,18 @@ interface MatrixCellShape {
     readonly lengthInMeters?: number;
     readonly travelTimeInSeconds?: number;
   };
-  readonly statusCode?: string;
+  readonly detailedError?: {
+    readonly innerError?: { readonly code?: string };
+    readonly code?: string;
+  };
 }
 interface MatrixResponseShape {
   readonly data?: ReadonlyArray<MatrixCellShape>;
 }
+
+/** Cells only carry an error code on failure (verified live) — success has no explicit status field. */
+const matrixCellStatus = (cell: MatrixCellShape): string =>
+  cell.detailedError?.innerError?.code ?? cell.detailedError?.code ?? (cell.routeSummary ? "OK" : "?");
 
 export const renderRouteMatrix = (data: MatrixResponseShape): string => {
   const cells = data.data ?? [];
@@ -173,7 +180,7 @@ export const renderRouteMatrix = (data: MatrixResponseShape): string => {
     cell.routeSummary?.travelTimeInSeconds !== undefined
       ? formatDuration(cell.routeSummary.travelTimeInSeconds)
       : "?",
-    cell.statusCode ?? "?",
+    matrixCellStatus(cell),
   ]);
   return table([["Origin", "Destination", "Distance", "Duration", "Status"], ...rows]);
 };
