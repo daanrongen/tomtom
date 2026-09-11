@@ -18,3 +18,14 @@ export const jsonResponse = (status: number, body: unknown, headers: Record<stri
     status,
     headers: { "content-type": "application/json", ...headers },
   });
+
+export const binaryResponse = (
+  status: number,
+  bytes: Uint8Array,
+  contentType = "image/png",
+  headers: Record<string, string> = {},
+): Response =>
+  new Response(bytes, {
+    status,
+    headers: { "content-type": contentType, ...headers },
+  });

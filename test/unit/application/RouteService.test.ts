@@ -115,6 +115,7 @@ describe("RouteService.routeMatrix", () => {
     const layer = Layer.succeed(TomTomClient, {
       get: () => Effect.succeed({ results: [{ position: { lat: 51.5, lon: -0.1 } }] }),
       post: () => Effect.succeed({ data: [] }),
+      getBinary: () => Effect.die("getBinary() not stubbed in this test"),
       request: () => Effect.die("request() not stubbed in this test"),
     });
     const result = await Effect.runPromise(
