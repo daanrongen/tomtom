@@ -44,6 +44,7 @@ Precedence: `--api-key` > `TOMTOM_API_KEY` > the config file (`tomtom config pat
 ```sh
 tomtom search "Heathrow Airport"
 tomtom search nearby --lat 51.5074 --lon -0.1278 --radius 2000 --category 7315   # 7315 = restaurants
+tomtom search category 7315 --lat 51.5074 --lon -0.1278 --radius 2000
 tomtom geocode "10 Downing Street, London"
 tomtom reverse-geocode 51.5034,-0.1276
 tomtom route calculate --from London --to Oxford --traffic
@@ -100,7 +101,7 @@ Pushing a `vX.Y.Z` tag (matching the version in `package.json`) runs the full pi
 
 Phase 1 (this release): config, search (fuzzy/poi/nearby), geocode, reverse-geocode, route calculate, reachable-range, traffic incidents/details, the `api request` escape hatch, shell completion.
 
-Phase 2+: route matrix, search category/brand/geometry/along-route/ev, traffic flow, map static/tile, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
+Phase 2+: route matrix, search brand/geometry/along-route/ev, traffic flow, map static/tile, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
 
 ## License
 

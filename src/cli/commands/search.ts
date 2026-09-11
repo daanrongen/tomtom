@@ -1,6 +1,6 @@
 import { Args, Command, Options } from "@effect/cli";
 import { Console, Effect, Option } from "effect";
-import { fuzzySearch, nearbySearch, poiSearch } from "@/application/SearchService.js";
+import { categorySearch, fuzzySearch, nearbySearch, poiSearch } from "@/application/SearchService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
 import { render, renderSearchResults } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
@@ -129,9 +129,39 @@ const nearby = Command.make(
     ),
 ).pipe(Command.withDescription("Search near a lat/lon point"));
 
-const category = notImplemented("category", "search category", globalOptions, {
-  category: Args.text({ name: "category" }),
-});
+const category = Command.make(
+  "category",
+  {
+    ...globalOptions,
+    category: Args.text({ name: "category" }),
+    lat: latOption,
+    lon: lonOption,
+    radius: radiusOption,
+    limit: limitOption,
+    offset: offsetOption,
+    country: countrySetOption,
+    language: languageOption,
+    brand: brandSetOption,
+  },
+  (parsed) =>
+    withTomTomClient(
+      parsed as GlobalFlags,
+      Effect.gen(function* () {
+        const data = yield* categorySearch({
+          categorySet: parsed.category,
+          lat: opt<number>(parsed.lat),
+          lon: opt<number>(parsed.lon),
+          radius: opt<number>(parsed.radius),
+          limit: opt<number>(parsed.limit),
+          offset: opt<number>(parsed.offset),
+          countrySet: opt<string>(parsed.country),
+          language: opt<string>(parsed.language),
+          brandSet: opt<string>(parsed.brand),
+        });
+        yield* render(parsed, data, renderSearchResults as (d: unknown) => string);
+      }),
+    ),
+).pipe(Command.withDescription("POI search filtered by category (numeric TomTom category IDs, e.g. 7315)"));
 const brand = notImplemented("brand", "search brand", globalOptions, {
   brand: Args.text({ name: "brand" }),
 });
