@@ -175,6 +175,43 @@ export const layer = (
       const post = (path: string, body: unknown, params: QueryParams = {}) =>
         withRetry(performPost(path, body, params));
 
+      const performBinary = (path: string, params: QueryParams) =>
+        Effect.gen(function* () {
+          const url = buildUrl(config.baseUrl, path, params, config.apiKey);
+          if (config.debug) {
+            yield* Effect.logDebug(`GET ${redact(url)}`);
+          }
+
+          const response = yield* client.get(url).pipe(
+            Effect.timeout(Duration.millis(config.timeoutMillis)),
+            Effect.mapError(
+              (cause): TomTomError =>
+                cause._tag === "TimeoutException"
+                  ? new TransportError({
+                      message: `request timed out after ${config.timeoutMillis}ms`,
+                    })
+                  : new TransportError({ message: cause.message }),
+            ),
+          );
+
+          if (response.status >= 200 && response.status < 300) {
+            return yield* response.arrayBuffer.pipe(
+              Effect.map((buffer) => new Uint8Array(buffer)),
+              Effect.mapError(
+                () =>
+                  new TransportError({
+                    message: "TomTom returned a response that could not be read as bytes",
+                  }),
+              ),
+            );
+          }
+
+          const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""));
+          return yield* Effect.fail(toApiError(response.status, body, response.headers["retry-after"]));
+        });
+
+      const getBinary = (path: string, params: QueryParams = {}) => withRetry(performBinary(path, params));
+
       const request = (input: RawRequest): Effect.Effect<RawResponse, TomTomError> =>
         Effect.gen(function* () {
           const url = new URL(input.url);
@@ -209,6 +246,6 @@ export const layer = (
           };
         });
 
-      return { get, post, request };
+      return { get, post, getBinary, request };
     }),
   );

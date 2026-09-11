@@ -23,6 +23,8 @@ export class TomTomClient extends Context.Tag("tomtom/TomTomClient")<
     readonly get: (path: string, params?: QueryParams) => Effect.Effect<unknown, TomTomError>;
     /** POST a JSON body to a TomTom endpoint; same auth/retry/decode behavior as {@link get}. */
     readonly post: (path: string, body: unknown, params?: QueryParams) => Effect.Effect<unknown, TomTomError>;
+    /** GET a binary (image) response, e.g. Map Display API static images/tiles; same auth/retry behavior as {@link get}. */
+    readonly getBinary: (path: string, params?: QueryParams) => Effect.Effect<Uint8Array, TomTomError>;
     /** The `api request` escape hatch: arbitrary method/URL, optional auth, raw text body back. */
     readonly request: (input: RawRequest) => Effect.Effect<RawResponse, TomTomError>;
   }

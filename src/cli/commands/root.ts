@@ -3,9 +3,10 @@ import { Console } from "effect";
 import { api } from "./api.js";
 import { config } from "./config.js";
 import { geocodeCommand, reverseGeocodeCommand } from "./geocode.js";
+import { map } from "./map.js";
 import { route } from "./route.js";
 import { search } from "./search.js";
-import { dataViz, ev, map } from "./stub-groups.js";
+import { dataViz, ev } from "./stub-groups.js";
 import { traffic } from "./traffic.js";
 
 export const root = Command.make("tomtom", {}, () =>
