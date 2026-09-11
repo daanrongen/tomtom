@@ -1,11 +1,10 @@
 import { Command, Options } from "@effect/cli";
 import { FileSystem } from "@effect/platform";
 import { Console, Effect, Option } from "effect";
-import { staticImage } from "@/application/MapService.js";
+import { staticImage, tile } from "@/application/MapService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
 import { withTomTomClient } from "@/cli/runtime.js";
 import { ValidationError } from "@/domain/shared/errors.js";
-import { notImplemented } from "./stubs.js";
 
 const outputOption = Options.text("output").pipe(
   Options.optional,
@@ -73,9 +72,46 @@ const staticCommand = Command.make(
   ),
 );
 
-const tileStub = notImplemented("tile", "map tile", globalOptions);
+const tileCommand = Command.make(
+  "tile",
+  {
+    ...globalOptions,
+    layer: Options.choice("layer", ["basic", "hybrid", "labels"] as const).pipe(Options.withDefault("basic")),
+    style: Options.choice("style", ["main", "night"] as const).pipe(Options.withDefault("main")),
+    zoom: Options.integer("zoom").pipe(Options.withDescription("0-22")),
+    tileX: Options.integer("tile-x").pipe(Options.withDescription("Tile X coordinate")),
+    tileY: Options.integer("tile-y").pipe(Options.withDescription("Tile Y coordinate")),
+    format: Options.choice("format", ["png", "jpg"] as const).pipe(Options.withDefault("png")),
+    tileSize: Options.choice("tile-size", ["256", "512"] as const).pipe(Options.optional),
+    view: Options.text("view").pipe(Options.optional),
+    language: Options.text("language").pipe(Options.optional),
+    output: outputOption,
+  },
+  (parsed) =>
+    withTomTomClient(
+      parsed as GlobalFlags,
+      Effect.gen(function* () {
+        const bytes = yield* tile({
+          layer: parsed.layer,
+          style: parsed.style,
+          zoom: parsed.zoom,
+          x: parsed.tileX,
+          y: parsed.tileY,
+          format: parsed.format,
+          tileSize: Option.match(parsed.tileSize, { onNone: () => undefined, onSome: Number }),
+          view: Option.getOrUndefined(parsed.view),
+          language: Option.getOrUndefined(parsed.language),
+        });
+        yield* writeImage(parsed.output, bytes);
+      }),
+    ),
+).pipe(
+  Command.withDescription(
+    "Fetch a single raster map tile (raw PNG/JPEG bytes — --json/--pretty don't apply here)",
+  ),
+);
 
 export const map = Command.make("map", {}, () => Console.log("Usage: tomtom map <static|tile>")).pipe(
   Command.withDescription("Map Display API — static maps and tiles"),
-  Command.withSubcommands([staticCommand, tileStub]),
+  Command.withSubcommands([staticCommand, tileCommand]),
 );
