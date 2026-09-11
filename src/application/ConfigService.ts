@@ -1,10 +1,9 @@
 import { Effect } from "effect";
 import { ConfigError } from "@/domain/shared/errors.js";
-import { type Backend, ConfigStore } from "@/ports/ConfigStore.js";
+import { ConfigStore } from "@/ports/ConfigStore.js";
 
 export interface ResolvedConfig {
   readonly apiKey: string;
-  readonly backend: Backend;
   readonly baseUrl: string;
   readonly timeoutMillis: number;
   readonly maxRetries: number;
@@ -13,7 +12,6 @@ export interface ResolvedConfig {
 
 export interface ResolveInput {
   readonly apiKeyOption?: string;
-  readonly backendOption?: Backend;
   readonly timeoutSecondsOption?: number;
   readonly retryOption?: number;
   readonly noRetry?: boolean;
@@ -50,12 +48,6 @@ export const resolve = (input: ResolveInput): Effect.Effect<ResolvedConfig, Conf
       );
     }
 
-    const backend: Backend =
-      input.backendOption ??
-      (process.env.TOMTOM_MAPS_BACKEND as Backend | undefined) ??
-      stored.backend ??
-      "tomtom-maps";
-
     const baseUrl = process.env.TOMTOM_API_HOST ?? DEFAULT_BASE_URL;
 
     const timeoutSeconds =
@@ -70,7 +62,6 @@ export const resolve = (input: ResolveInput): Effect.Effect<ResolvedConfig, Conf
 
     return {
       apiKey: apiKey ?? "",
-      backend,
       baseUrl,
       timeoutMillis: timeoutSeconds * 1000,
       maxRetries,

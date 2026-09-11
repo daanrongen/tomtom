@@ -6,7 +6,7 @@ import { withTomTomClient } from "@/cli/runtime.js";
 import { ValidationError } from "@/domain/shared/errors.js";
 import { ConfigStore } from "@/ports/ConfigStore.js";
 
-const VALID_KEYS = ["api-key", "backend", "timeout", "retries", "output"] as const;
+const VALID_KEYS = ["api-key", "timeout", "retries", "output"] as const;
 type ConfigKey = (typeof VALID_KEYS)[number];
 
 const fieldOf = (key: ConfigKey) => (key === "api-key" ? "apiKey" : key);

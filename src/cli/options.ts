@@ -1,6 +1,5 @@
 import { Options } from "@effect/cli";
 import type { Option } from "effect";
-import type { Backend } from "@/ports/ConfigStore.js";
 
 export const jsonOption = Options.boolean("json").pipe(
   Options.withDefault(false),
@@ -40,10 +39,6 @@ export const verboseOption = Options.boolean("verbose").pipe(
   Options.withAlias("v"),
 );
 export const debugOption = Options.boolean("debug").pipe(Options.withDefault(false));
-export const backendOption = Options.choice("backend", ["tomtom-maps", "tomtom-orbis-maps"] as const).pipe(
-  Options.optional,
-  Options.withDescription("Select the TomTom Maps or Orbis Maps backend"),
-);
 
 /** Spread into every leaf command's config object. */
 export const globalOptions = {
@@ -58,7 +53,6 @@ export const globalOptions = {
   quiet: quietOption,
   verbose: verboseOption,
   debug: debugOption,
-  backend: backendOption,
 };
 
 export interface GlobalFlags {
@@ -73,5 +67,4 @@ export interface GlobalFlags {
   readonly quiet: boolean;
   readonly verbose: boolean;
   readonly debug: boolean;
-  readonly backend: Option.Option<Backend>;
 }

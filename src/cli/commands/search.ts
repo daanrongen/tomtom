@@ -10,7 +10,6 @@ import {
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
 import { render, renderSearchResults } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
-import { notImplemented } from "./stubs.js";
 
 const limitOption = Options.integer("limit").pipe(Options.optional);
 const offsetOption = Options.integer("offset").pipe(Options.optional);
@@ -201,27 +200,12 @@ const brand = Command.make(
       }),
     ),
 ).pipe(Command.withDescription("POI search filtered by brand name, e.g. Starbucks"));
-const alongRoute = notImplemented("along-route", "search along-route", globalOptions);
-const geometry = notImplemented("geometry", "search geometry", globalOptions);
-const ev = notImplemented("ev", "search ev", globalOptions);
-
 /** Names @effect/cli will treat as subcommands of `search` — used by main.ts's bare-query alias rewrite. */
-export const SEARCH_SUBCOMMAND_NAMES = [
-  "fuzzy",
-  "poi",
-  "nearby",
-  "category",
-  "brand",
-  "along-route",
-  "geometry",
-  "ev",
-];
+export const SEARCH_SUBCOMMAND_NAMES = ["fuzzy", "poi", "nearby", "category", "brand"];
 
 export const search = Command.make("search", {}, () =>
-  Console.log(
-    "Usage: tomtom search <query> | tomtom search <fuzzy|poi|nearby|category|brand|along-route|geometry|ev>",
-  ),
+  Console.log("Usage: tomtom search <query> | tomtom search <fuzzy|poi|nearby|category|brand>"),
 ).pipe(
   Command.withDescription("Search TomTom's Search API (fuzzy search by default)"),
-  Command.withSubcommands([fuzzy, poi, nearby, category, brand, alongRoute, geometry, ev]),
+  Command.withSubcommands([fuzzy, poi, nearby, category, brand]),
 );
