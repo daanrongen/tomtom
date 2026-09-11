@@ -1,13 +1,15 @@
 import { Effect, Option } from "effect";
 import * as HttpTomTomClient from "@/adapters/http/HttpTomTomClient.js";
 import * as ConfigService from "@/application/ConfigService.js";
+import { ValidationError } from "@/domain/shared/errors.js";
+import type { Backend } from "@/ports/ConfigStore.js";
 import type { GlobalFlags } from "./options.js";
 
 /** Resolves config from the parsed global flags and provides a TomTomClient scoped to this invocation. */
 export const withTomTomClient = <A, E, R>(
   flags: GlobalFlags,
   effect: Effect.Effect<A, E, R>,
-  options: { readonly apiKeyRequired?: boolean } = {},
+  options: { readonly apiKeyRequired?: boolean; readonly requireBackend?: Backend } = {},
 ) =>
   Effect.gen(function* () {
     const resolved = yield* ConfigService.resolve({
@@ -19,6 +21,13 @@ export const withTomTomClient = <A, E, R>(
       debug: flags.debug,
       apiKeyRequired: options.apiKeyRequired,
     });
+    if (options.requireBackend && resolved.backend !== options.requireBackend) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: `this command requires --backend ${options.requireBackend} (or run \`tomtom config set backend ${options.requireBackend}\`)`,
+        }),
+      );
+    }
     const clientLayer = HttpTomTomClient.layer({
       apiKey: resolved.apiKey,
       baseUrl: resolved.baseUrl,

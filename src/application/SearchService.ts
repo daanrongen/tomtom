@@ -121,3 +121,45 @@ export const nearbySearch = (options: NearbySearchOptions) =>
       brandSet: options.brandSet,
     });
   });
+
+export interface EvSearchOptions {
+  readonly lat?: number;
+  readonly lon?: number;
+  readonly radius?: number;
+  readonly topLeft?: string;
+  readonly btmRight?: string;
+  readonly connector?: string;
+  readonly minPowerKw?: number;
+  readonly maxPowerKw?: number;
+  readonly status?: string;
+  readonly brandSet?: string;
+  readonly paymentBrand?: string;
+  readonly accessType?: string;
+  readonly vehicleType?: string;
+  readonly vehicleCategory?: string;
+  readonly limit?: number;
+}
+
+/** EV charging station search (spec §8.8) — Orbis EV Search API, not the classic Search API's category filter. */
+export const evSearch = (options: EvSearchOptions) =>
+  Effect.gen(function* () {
+    const client = yield* TomTomClient;
+    return yield* client.get("/maps/orbis/places/ev/nearby", {
+      apiVersion: 1,
+      lat: options.lat,
+      lon: options.lon,
+      radius: options.radius,
+      topLeft: options.topLeft,
+      btmRight: options.btmRight,
+      connector: options.connector,
+      minPowerKW: options.minPowerKw,
+      maxPowerKW: options.maxPowerKw,
+      status: options.status,
+      brand: options.brandSet,
+      paymentBrand: options.paymentBrand,
+      accessType: options.accessType,
+      vehicleType: options.vehicleType,
+      vehicleCategory: options.vehicleCategory,
+      limit: options.limit,
+    });
+  });

@@ -46,6 +46,7 @@ tomtom search "Heathrow Airport"
 tomtom search nearby --lat 51.5074 --lon -0.1278 --radius 2000 --category 7315   # 7315 = restaurants
 tomtom search category 7315 --lat 51.5074 --lon -0.1278 --radius 2000
 tomtom search brand Starbucks --lat 51.5074 --lon -0.1278 --radius 2000
+tomtom search ev --lat 51.5074 --lon -0.1278 --radius 5000 --connector IEC_62196_T2 --backend tomtom-orbis-maps
 tomtom geocode "10 Downing Street, London"
 tomtom reverse-geocode 51.5034,-0.1276
 tomtom route calculate --from London --to Oxford --traffic
@@ -73,7 +74,7 @@ tomtom --completions zsh > "${fpath[1]}/_tomtom"
 
 `map static`/`map tile`/`traffic flow tile`'s output is raw image bytes, not JSON — `--json`/`--pretty` don't apply to them; use `--output <path>` to write to a file, or omit it (or pass `--output -`) to write to stdout.
 
-Commands not yet implemented (EV routing/search, data-viz, search along-route/geometry/ev) are wired into the tree and show up in `--help`, but exit with a clear "not implemented" error — see [Roadmap](#roadmap).
+Commands not yet implemented (EV routing/search, data-viz, search along-route/geometry) are wired into the tree and show up in `--help`, but exit with a clear "not implemented" error — see [Roadmap](#roadmap).
 
 ## Architecture
 
@@ -113,9 +114,9 @@ Pushing a `vX.Y.Z` tag (matching the version in `package.json`) runs the full pi
 
 ## Roadmap
 
-Phase 1 (this release): config, search (fuzzy/poi/nearby/category/brand), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details/flow, map static/tile, the `api request` escape hatch, shell completion.
+Phase 1 (this release): config, search (fuzzy/poi/nearby/category/brand/ev), geocode, reverse-geocode, route calculate, reachable-range, route matrix, traffic incidents/details/flow, map static/tile, the `api request` escape hatch, shell completion.
 
-Phase 2+: search geometry/along-route/ev, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
+Phase 2+: search geometry/along-route, EV routing/search, data-viz — see the TomTom API spec this project was built from for full scope.
 
 ## License
 

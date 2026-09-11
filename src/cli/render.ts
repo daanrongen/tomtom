@@ -213,6 +213,40 @@ export const renderFlowSegment = (data: FlowSegmentResponseShape): string => {
   return `${segment.frc ?? "?"}: ${segment.currentSpeed ?? "?"}/${segment.freeFlowSpeed ?? "?"} (confidence ${segment.confidence ?? "?"})${closure}`;
 };
 
+interface EvConnectorShape {
+  readonly type?: string;
+  readonly ratedPowerKW?: number;
+  readonly status?: string;
+}
+interface EvStationShape {
+  readonly name?: string;
+  readonly address?: { readonly freeformAddress?: string };
+  readonly accessType?: string;
+  readonly chargingStations?: ReadonlyArray<{
+    readonly connectors?: ReadonlyArray<EvConnectorShape>;
+  }>;
+}
+interface EvSearchResponseShape {
+  readonly results?: ReadonlyArray<EvStationShape>;
+}
+
+export const renderEvStations = (data: EvSearchResponseShape): string => {
+  const stations = data.results ?? [];
+  if (stations.length === 0) return "(no charging stations found)";
+  return stations
+    .map((station) => {
+      const header = [station.name ?? "(unnamed)", station.address?.freeformAddress, station.accessType]
+        .filter(Boolean)
+        .join(" — ");
+      const connectors = (station.chargingStations ?? [])
+        .flatMap((cs) => cs.connectors ?? [])
+        .map((c) => `  ${c.type ?? "?"}: ${c.ratedPowerKW ?? "?"} kW (${c.status ?? "?"})`)
+        .join("\n");
+      return connectors ? `${header}\n${connectors}` : header;
+    })
+    .join("\n\n");
+};
+
 export const renderIncidents = (data: IncidentsResponseShape): string => {
   const incidents = data.incidents ?? [];
   if (incidents.length === 0) return "(no incidents)";

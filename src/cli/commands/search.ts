@@ -3,13 +3,15 @@ import { Console, Effect, Option } from "effect";
 import {
   brandSearch,
   categorySearch,
+  evSearch,
   fuzzySearch,
   nearbySearch,
   poiSearch,
 } from "@/application/SearchService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
-import { render, renderSearchResults } from "@/cli/render.js";
+import { render, renderEvStations, renderSearchResults } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
+import { ValidationError } from "@/domain/shared/errors.js";
 import { notImplemented } from "./stubs.js";
 
 const limitOption = Options.integer("limit").pipe(Options.optional);
@@ -203,7 +205,86 @@ const brand = Command.make(
 ).pipe(Command.withDescription("POI search filtered by brand name, e.g. Starbucks"));
 const alongRoute = notImplemented("along-route", "search along-route", globalOptions);
 const geometry = notImplemented("geometry", "search geometry", globalOptions);
-const ev = notImplemented("ev", "search ev", globalOptions);
+
+const connectorOption = Options.text("connector").pipe(
+  Options.optional,
+  Options.withDescription("Connector type, e.g. IEC_62196_T2"),
+);
+const minPowerKwOption = Options.float("min-power-kw").pipe(Options.optional);
+const maxPowerKwOption = Options.float("max-power-kw").pipe(Options.optional);
+const evStatusOption = Options.choice("status", [
+  "Available",
+  "Occupied",
+  "Reserved",
+  "OutOfService",
+  "Unknown",
+] as const).pipe(Options.optional);
+const paymentBrandOption = Options.text("payment-brand").pipe(Options.optional);
+const accessTypeOption = Options.text("access-type").pipe(Options.optional);
+const vehicleTypeOption = Options.text("vehicle-type").pipe(Options.optional);
+const vehicleCategoryOption = Options.text("vehicle-category").pipe(Options.optional);
+
+const ev = Command.make(
+  "ev",
+  {
+    ...globalOptions,
+    lat: latOption,
+    lon: lonOption,
+    radius: radiusOption,
+    topLeft: topLeftOption,
+    btmRight: btmRightOption,
+    connector: connectorOption,
+    minPowerKw: minPowerKwOption,
+    maxPowerKw: maxPowerKwOption,
+    status: evStatusOption,
+    brand: brandSetOption,
+    paymentBrand: paymentBrandOption,
+    accessType: accessTypeOption,
+    vehicleType: vehicleTypeOption,
+    vehicleCategory: vehicleCategoryOption,
+    limit: limitOption,
+  },
+  (parsed) =>
+    withTomTomClient(
+      parsed as GlobalFlags,
+      Effect.gen(function* () {
+        const lat = opt<number>(parsed.lat);
+        const lon = opt<number>(parsed.lon);
+        const topLeft = opt<string>(parsed.topLeft);
+        const btmRight = opt<string>(parsed.btmRight);
+        if (!((lat !== undefined && lon !== undefined) || (topLeft && btmRight))) {
+          return yield* Effect.fail(
+            new ValidationError({
+              message: "search ev requires either --lat/--lon or --top-left/--btm-right",
+            }),
+          );
+        }
+        const data = yield* evSearch({
+          lat,
+          lon,
+          radius: opt<number>(parsed.radius),
+          topLeft,
+          btmRight,
+          connector: opt<string>(parsed.connector),
+          minPowerKw: opt<number>(parsed.minPowerKw),
+          maxPowerKw: opt<number>(parsed.maxPowerKw),
+          status: opt<string>(parsed.status),
+          brandSet: opt<string>(parsed.brand),
+          paymentBrand: opt<string>(parsed.paymentBrand),
+          accessType: opt<string>(parsed.accessType),
+          vehicleType: opt<string>(parsed.vehicleType),
+          vehicleCategory: opt<string>(parsed.vehicleCategory),
+          limit: opt<number>(parsed.limit),
+        });
+        yield* render(parsed, data, renderEvStations as (d: unknown) => string);
+      }),
+      { requireBackend: "tomtom-orbis-maps" },
+    ),
+).pipe(
+  Command.withDescription(
+    "Search for EV charging stations near a point or within a bounding box (requires --backend tomtom-orbis-maps)",
+  ),
+);
 
 /** Names @effect/cli will treat as subcommands of `search` — used by main.ts's bare-query alias rewrite. */
 export const SEARCH_SUBCOMMAND_NAMES = [
