@@ -1,29 +1,66 @@
 name: Release
 
+# Cutting a release is just `git tag vX.Y.Z && git push origin vX.Y.Z` — no need to
+# remember to bump package.json first. `bump` does that and commits it straight to main;
+# everything downstream builds from that commit rather than the tag's (which is one
+# commit behind), so the compiled binary's `--version` always matches the tag.
 on:
   push:
     tags: ["v*.*.*"]
 
-jobs:
-  test:
-    uses: ./.github/workflows/ci.yml
+permissions:
+  contents: read
 
-  check-version:
-    needs: test
+jobs:
+  bump:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      sha: ${{ steps.bump.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Tag must match package.json version
+      - id: version
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION="$(node -p "require('./package.json').version")"
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "Tag v$TAG_VERSION does not match package.json version $PKG_VERSION"
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::$GITHUB_REF_NAME is not a semver tag (expected vX.Y.Z)"
             exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Bump package.json and commit to main
+        id: bump
+        run: |
+          bun pm version "$VERSION" --no-git-tag-version --allow-same-version
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          if git diff --cached --quiet; then
+            echo "package.json already at v$VERSION"
+          else
+            git commit -m "chore(release): v$VERSION"
+            git push origin HEAD:main
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+
+  test:
+    needs: bump
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.bump.outputs.sha }}
 
   build:
-    needs: check-version
+    needs: [bump, test]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,6 +75,8 @@ jobs:
             asset: linux-arm64
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:
