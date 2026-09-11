@@ -73,6 +73,21 @@ export interface CategorySearchOptions {
 /** POI search scoped to a category, via poiSearch's wildcard-query convention (spec §8.4). */
 export const categorySearch = (options: CategorySearchOptions) => poiSearch({ query: "*", ...options });
 
+export interface BrandSearchOptions {
+  readonly brandSet: string;
+  readonly limit?: number;
+  readonly offset?: number;
+  readonly countrySet?: string;
+  readonly language?: string;
+  readonly lat?: number;
+  readonly lon?: number;
+  readonly radius?: number;
+  readonly categorySet?: string;
+}
+
+/** POI search scoped to a brand, via poiSearch's wildcard-query convention (spec §8.5). */
+export const brandSearch = (options: BrandSearchOptions) => poiSearch({ query: "*", ...options });
+
 export interface NearbySearchOptions {
   readonly lat: number;
   readonly lon: number;

@@ -1,6 +1,12 @@
 import { Args, Command, Options } from "@effect/cli";
 import { Console, Effect, Option } from "effect";
-import { categorySearch, fuzzySearch, nearbySearch, poiSearch } from "@/application/SearchService.js";
+import {
+  brandSearch,
+  categorySearch,
+  fuzzySearch,
+  nearbySearch,
+  poiSearch,
+} from "@/application/SearchService.js";
 import { type GlobalFlags, globalOptions } from "@/cli/options.js";
 import { render, renderSearchResults } from "@/cli/render.js";
 import { withTomTomClient } from "@/cli/runtime.js";
@@ -162,9 +168,39 @@ const category = Command.make(
       }),
     ),
 ).pipe(Command.withDescription("POI search filtered by category (numeric TomTom category IDs, e.g. 7315)"));
-const brand = notImplemented("brand", "search brand", globalOptions, {
-  brand: Args.text({ name: "brand" }),
-});
+const brand = Command.make(
+  "brand",
+  {
+    ...globalOptions,
+    brand: Args.text({ name: "brand" }),
+    lat: latOption,
+    lon: lonOption,
+    radius: radiusOption,
+    limit: limitOption,
+    offset: offsetOption,
+    country: countrySetOption,
+    language: languageOption,
+    category: categorySetOption,
+  },
+  (parsed) =>
+    withTomTomClient(
+      parsed as GlobalFlags,
+      Effect.gen(function* () {
+        const data = yield* brandSearch({
+          brandSet: parsed.brand,
+          lat: opt<number>(parsed.lat),
+          lon: opt<number>(parsed.lon),
+          radius: opt<number>(parsed.radius),
+          limit: opt<number>(parsed.limit),
+          offset: opt<number>(parsed.offset),
+          countrySet: opt<string>(parsed.country),
+          language: opt<string>(parsed.language),
+          categorySet: opt<string>(parsed.category),
+        });
+        yield* render(parsed, data, renderSearchResults as (d: unknown) => string);
+      }),
+    ),
+).pipe(Command.withDescription("POI search filtered by brand name, e.g. Starbucks"));
 const alongRoute = notImplemented("along-route", "search along-route", globalOptions);
 const geometry = notImplemented("geometry", "search geometry", globalOptions);
 const ev = notImplemented("ev", "search ev", globalOptions);

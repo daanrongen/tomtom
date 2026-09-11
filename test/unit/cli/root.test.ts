@@ -72,12 +72,17 @@ describe("root CLI", () => {
   });
 
   test("stub commands fail with NotImplementedError", async () => {
-    const exit = await run(["search", "brand", "Starbucks", "--api-key", "k"]);
+    const exit = await run(["search", "along-route", "--api-key", "k"]);
     expect(errorTag(exit)).toBe("NotImplementedError");
   });
 
   test("search category resolves the positional into categorySet", async () => {
     const exit = await run(["search", "category", "7315", "--api-key", "k"]);
+    expect(exit._tag).toBe("Success");
+  });
+
+  test("search brand resolves the positional into brandSet", async () => {
+    const exit = await run(["search", "brand", "Starbucks", "--api-key", "k"]);
     expect(exit._tag).toBe("Success");
   });
 
