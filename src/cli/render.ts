@@ -148,6 +148,43 @@ export const renderReachableRange = (data: ReachableRangeResponseShape): string 
   return `Center: ${range.center.latitude}, ${range.center.longitude}\nBoundary points: ${points}`;
 };
 
+interface MatrixCellShape {
+  readonly originIndex?: number;
+  readonly destinationIndex?: number;
+  readonly routeSummary?: {
+    readonly lengthInMeters?: number;
+    readonly travelTimeInSeconds?: number;
+  };
+  readonly detailedError?: {
+    readonly innerError?: { readonly code?: string };
+    readonly code?: string;
+  };
+}
+interface MatrixResponseShape {
+  readonly data?: ReadonlyArray<MatrixCellShape>;
+}
+
+/** Cells only carry an error code on failure (verified live) — success has no explicit status field. */
+const matrixCellStatus = (cell: MatrixCellShape): string =>
+  cell.detailedError?.innerError?.code ?? cell.detailedError?.code ?? (cell.routeSummary ? "OK" : "?");
+
+export const renderRouteMatrix = (data: MatrixResponseShape): string => {
+  const cells = data.data ?? [];
+  if (cells.length === 0) return "(no results)";
+  const rows = cells.map((cell) => [
+    String(cell.originIndex ?? "?"),
+    String(cell.destinationIndex ?? "?"),
+    cell.routeSummary?.lengthInMeters !== undefined
+      ? `${(cell.routeSummary.lengthInMeters / 1000).toFixed(1)} km`
+      : "?",
+    cell.routeSummary?.travelTimeInSeconds !== undefined
+      ? formatDuration(cell.routeSummary.travelTimeInSeconds)
+      : "?",
+    matrixCellStatus(cell),
+  ]);
+  return table([["Origin", "Destination", "Distance", "Duration", "Status"], ...rows]);
+};
+
 interface IncidentShape {
   readonly properties?: {
     readonly iconCategory?: number;

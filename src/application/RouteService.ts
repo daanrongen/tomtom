@@ -84,6 +84,41 @@ export const calculateRoute = (options: RouteCalculateOptions) =>
     });
   });
 
+export interface RouteMatrixOptions {
+  readonly origins: ReadonlyArray<string>;
+  readonly destinations: ReadonlyArray<string>;
+}
+
+const toMatrixPoint = (waypoint: Coordinate.Coordinate) => ({
+  point: { latitude: waypoint.lat, longitude: waypoint.lon },
+});
+
+/**
+ * Batch origin×destination routing via TomTom's synchronous Matrix Routing v2
+ * (`POST /routing/matrix/2`, body `{origins, destinations}` of `{point: {latitude, longitude}}`,
+ * response `data[]` of `{originIndex, destinationIndex, routeSummary}`) — verified live against
+ * the real API during development.
+ */
+export const routeMatrix = (options: RouteMatrixOptions) =>
+  Effect.gen(function* () {
+    if (options.origins.length === 0 || options.destinations.length === 0) {
+      return yield* Effect.fail(
+        new ValidationError({
+          message: "matrix input requires at least one origin and one destination",
+        }),
+      );
+    }
+
+    const origins = yield* Effect.forEach(options.origins, resolveWaypoint);
+    const destinations = yield* Effect.forEach(options.destinations, resolveWaypoint);
+
+    const client = yield* TomTomClient;
+    return yield* client.post("/routing/matrix/2", {
+      origins: origins.map(toMatrixPoint),
+      destinations: destinations.map(toMatrixPoint),
+    });
+  });
+
 export interface ReachableRangeOptions {
   readonly from: string;
   readonly timeBudgetInSec?: number;
