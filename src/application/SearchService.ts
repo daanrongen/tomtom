@@ -58,6 +58,21 @@ export const poiSearch = (options: FuzzySearchOptions) =>
     );
   });
 
+export interface CategorySearchOptions {
+  readonly categorySet: string;
+  readonly limit?: number;
+  readonly offset?: number;
+  readonly countrySet?: string;
+  readonly language?: string;
+  readonly lat?: number;
+  readonly lon?: number;
+  readonly radius?: number;
+  readonly brandSet?: string;
+}
+
+/** POI search scoped to a category, via poiSearch's wildcard-query convention (spec §8.4). */
+export const categorySearch = (options: CategorySearchOptions) => poiSearch({ query: "*", ...options });
+
 export interface NearbySearchOptions {
   readonly lat: number;
   readonly lon: number;
