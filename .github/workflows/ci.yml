@@ -5,12 +5,18 @@ on:
     branches: [main]
   pull_request:
   workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: oven-sh/setup-bun@v2
         with:

@@ -116,7 +116,7 @@ lefthook install   # one-time, per clone
 
 ## Release process
 
-Pushing a `vX.Y.Z` tag (matching the version in `package.json`) runs the full pipeline: tests → cross-compiled binaries for macOS/Linux, arm64/x64 → a GitHub Release with those binaries attached → an updated `Formula/tomtom.rb` pushed to the [`homebrew-tomtom`](https://github.com/daanrongen/homebrew-tomtom) tap. See `.github/workflows/release.yml`.
+Pushing a `vX.Y.Z` tag runs the full pipeline: bump `package.json` to match the tag and commit that to `main` → tests → cross-compiled binaries for macOS/Linux, arm64/x64 → a GitHub Release with those binaries attached → an updated `Formula/tomtom.rb` pushed to the [`homebrew-tomtom`](https://github.com/daanrongen/homebrew-tomtom) tap. See `.github/workflows/release.yml`.
 
 ## License
 
