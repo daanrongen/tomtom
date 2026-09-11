@@ -38,12 +38,6 @@ export class TransportError extends Data.TaggedError("TransportError")<{
   readonly exitCode = 7;
 }
 
-export class NotImplementedError extends Data.TaggedError("NotImplementedError")<{
-  readonly feature: string;
-}> {
-  readonly exitCode = 8;
-}
-
 export class ConfigError extends Data.TaggedError("ConfigError")<{
   readonly message: string;
 }> {
@@ -57,7 +51,6 @@ export type TomTomError =
   | ValidationError
   | ServerError
   | TransportError
-  | NotImplementedError
   | ConfigError;
 
 const TAGS: ReadonlySet<string> = new Set<TomTomError["_tag"]>([
@@ -67,7 +60,6 @@ const TAGS: ReadonlySet<string> = new Set<TomTomError["_tag"]>([
   "ValidationError",
   "ServerError",
   "TransportError",
-  "NotImplementedError",
   "ConfigError",
 ]);
 
@@ -95,7 +87,5 @@ export const messageOf = (error: TomTomError): string => {
       return `Invalid input: ${error.message}`;
     case "ConfigError":
       return `Configuration error: ${error.message}`;
-    case "NotImplementedError":
-      return `\`${error.feature}\` is not implemented yet in this release of tomtom.`;
   }
 };

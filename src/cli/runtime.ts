@@ -12,7 +12,6 @@ export const withTomTomClient = <A, E, R>(
   Effect.gen(function* () {
     const resolved = yield* ConfigService.resolve({
       apiKeyOption: Option.getOrUndefined(flags.apiKey),
-      backendOption: Option.getOrUndefined(flags.backend),
       timeoutSecondsOption: Option.getOrUndefined(flags.timeout),
       retryOption: Option.getOrUndefined(flags.retry),
       noRetry: flags.noRetry,

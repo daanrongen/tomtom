@@ -71,11 +71,6 @@ describe("root CLI", () => {
     expect(errorTag(exit)).toBe("ValidationError");
   });
 
-  test("stub commands fail with NotImplementedError", async () => {
-    const exit = await run(["search", "along-route", "--api-key", "k"]);
-    expect(errorTag(exit)).toBe("NotImplementedError");
-  });
-
   test("search category resolves the positional into categorySet", async () => {
     const exit = await run(["search", "category", "7315", "--api-key", "k"]);
     expect(exit._tag).toBe("Success");

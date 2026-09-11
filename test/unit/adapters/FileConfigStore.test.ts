@@ -44,7 +44,6 @@ describe("FileConfigStore", () => {
         const store = yield* ConfigStore;
         yield* store.save({
           apiKey: "sk_test",
-          backend: "tomtom-maps",
           retries: 3,
         });
         return yield* store.load;
@@ -52,7 +51,6 @@ describe("FileConfigStore", () => {
     );
     expect(result).toEqual({
       apiKey: "sk_test",
-      backend: "tomtom-maps",
       retries: 3,
     });
   });

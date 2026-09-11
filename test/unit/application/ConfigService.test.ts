@@ -11,20 +11,15 @@ const storeLayer = (stored: StoredConfig) =>
   });
 
 let originalApiKey: string | undefined;
-let originalBackend: string | undefined;
 
 beforeEach(() => {
   originalApiKey = process.env.TOMTOM_API_KEY;
-  originalBackend = process.env.TOMTOM_MAPS_BACKEND;
   delete process.env.TOMTOM_API_KEY;
-  delete process.env.TOMTOM_MAPS_BACKEND;
 });
 
 afterEach(() => {
   if (originalApiKey === undefined) delete process.env.TOMTOM_API_KEY;
   else process.env.TOMTOM_API_KEY = originalApiKey;
-  if (originalBackend === undefined) delete process.env.TOMTOM_MAPS_BACKEND;
-  else process.env.TOMTOM_MAPS_BACKEND = originalBackend;
 });
 
 describe("ConfigService.resolve precedence", () => {
@@ -74,12 +69,5 @@ describe("ConfigService.resolve precedence", () => {
       }).pipe(Effect.provide(storeLayer({}))),
     );
     expect(resolved.maxRetries).toBe(0);
-  });
-
-  test("defaults backend to tomtom-maps", async () => {
-    const resolved = await Effect.runPromise(
-      ConfigService.resolve({ apiKeyOption: "k" }).pipe(Effect.provide(storeLayer({}))),
-    );
-    expect(resolved.backend).toBe("tomtom-maps");
   });
 });
